@@ -70,6 +70,8 @@ struct _geany_win32_spawn
 	HANDLE hStderr;
 	HANDLE processId;
 	DWORD dwExitCode;
+	HANDLE hStdoutTempFile;
+	HANDLE hStderrTempFile;
 };
 typedef struct _geany_win32_spawn geany_win32_spawn;
 
@@ -77,7 +79,7 @@ static gboolean GetContentFromHandle(HANDLE hFile, gchar **content, GError **err
 static HANDLE GetTempFileHandle(GError **error);
 static gboolean CreateChildProcess(geany_win32_spawn *gw_spawn, TCHAR *szCmdline,
 		const TCHAR *dir, GError **error);
-static VOID ReadFromPipe(HANDLE hRead, HANDLE hWrite, HANDLE hFile, GError **error);
+static DWORD ReadFromPipe(HANDLE hRead, HANDLE hWrite, HANDLE hFile, GError **error);
 
 
 static wchar_t *get_file_filters(void)
@@ -837,8 +839,8 @@ gboolean win32_spawn(const gchar *dir, gchar **argv, gchar **env, GSpawnFlags fl
 	geany_win32_spawn gw_spawn;
 
 	/* Temp file */
-	HANDLE hStdoutTempFile = NULL;
-	HANDLE hStderrTempFile = NULL;
+	gw_spawn.hStderrTempFile = NULL;
+	gw_spawn.hStdoutTempFile = NULL;
 
 	gchar *stdout_content = NULL;
 	gchar *stderr_content = NULL;
@@ -870,11 +872,11 @@ gboolean win32_spawn(const gchar *dir, gchar **argv, gchar **env, GSpawnFlags fl
 
 	if (std_err != NULL)
 	{
-		hStderrTempFile = GetTempFileHandle(error);
-		if (hStderrTempFile == INVALID_HANDLE_VALUE)
+		gw_spawn.hStderrTempFile = GetTempFileHandle(error);
+		if (gw_spawn.hStderrTempFile == INVALID_HANDLE_VALUE || gw_spawn.hStderrTempFile == NULL)
 		{
 			gchar *msg = g_win32_error_message(GetLastError());
-			geany_debug("win32_spawn: Second CreateFile failed (%d)", (gint) GetLastError());
+			geany_debug("win32_spawn: Stderr temp file creation failed (%d)", (gint) GetLastError());
 			g_set_error(error, G_SPAWN_ERROR, G_FILE_ERROR, "%s", msg);
 			g_free(msg);
 			return FALSE;
@@ -883,11 +885,11 @@ gboolean win32_spawn(const gchar *dir, gchar **argv, gchar **env, GSpawnFlags fl
 
 	if (std_out != NULL)
 	{
-		hStdoutTempFile = GetTempFileHandle(error);
-		if (hStdoutTempFile == INVALID_HANDLE_VALUE)
-		{
-			gchar *msg = g_win32_error_message(GetLastError());
-			geany_debug("win32_spawn: Second CreateFile failed (%d)", (gint) GetLastError());
+		gw_spawn.hStdoutTempFile = GetTempFileHandle(error);
+		if (gw_spawn.hStdoutTempFile == INVALID_HANDLE_VALUE || gw_spawn.hStdoutTempFile == NULL)
+ 		{
+ 			gchar *msg = g_win32_error_message(GetLastError());
+			geany_debug("win32_spawn: Stdout temp file creation failed (%d)", (gint) GetLastError());
 			g_set_error(error, G_SPAWN_ERROR, G_FILE_ERROR, "%s", msg);
 			g_free(msg);
 			return FALSE;
@@ -959,8 +961,7 @@ gboolean win32_spawn(const gchar *dir, gchar **argv, gchar **env, GSpawnFlags fl
 	/* Read from pipe that is the standard output for child process. */
 	if (std_out != NULL)
 	{
-		ReadFromPipe(gw_spawn.hChildStdoutRd, gw_spawn.hChildStdoutWr, hStdoutTempFile, error);
-		if (! GetContentFromHandle(hStdoutTempFile, &stdout_content, error))
+		if (! GetContentFromHandle(gw_spawn.hStdoutTempFile, &stdout_content, error))
 		{
 			return FALSE;
 		}
@@ -969,8 +970,7 @@ gboolean win32_spawn(const gchar *dir, gchar **argv, gchar **env, GSpawnFlags fl
 
 	if (std_err != NULL)
 	{
-		ReadFromPipe(gw_spawn.hChildStderrRd, gw_spawn.hChildStderrWr, hStderrTempFile, error);
-		if (! GetContentFromHandle(hStderrTempFile, &stderr_content, error))
+		if (! GetContentFromHandle(gw_spawn.hStderrTempFile, &stderr_content, error))
 		{
 			return FALSE;
 		}
@@ -1076,7 +1076,7 @@ static gboolean CreateChildProcess(geany_win32_spawn *gw_spawn, TCHAR *szCmdline
 		TRUE,          /* handles are inherited */
 		CREATE_NO_WINDOW,             /* creation flags */
 		NULL,          /* use parent's environment */
-		w_dir,           /* use parent's current directory */
+		w_dir,           /* use specified directory */
 		&siStartInfo,  /* STARTUPINFO pointer */
 		&piProcInfo);  /* receives PROCESS_INFORMATION */
 
@@ -1092,18 +1092,31 @@ static gboolean CreateChildProcess(geany_win32_spawn *gw_spawn, TCHAR *szCmdline
 	}
 	else
 	{
-		gint i;
-		gsize ms = 30*1000;
+		gboolean done = FALSE;
+		gint timeout_count = 0;
+		DWORD dwStatus, dwReadStdErr, dwReadStdOut;
 
-		/* FIXME: this seems to timeout when there are many lines
-		 * to read - maybe because the child's pipe is full */
-		for (i = 0; i < 2 &&
-			WaitForSingleObject(piProcInfo.hProcess, ms) == WAIT_TIMEOUT; i++)
-		{
-			ui_set_statusbar(FALSE, _("Process timed out after %.02f s!"), ms / 1000.0F);
-			geany_debug("CreateChildProcess: timed out");
-			TerminateProcess(piProcInfo.hProcess, WAIT_TIMEOUT); /* NOTE: This will not kill grandkids. */
-		}
+		do {
+			dwReadStdOut = ReadFromPipe(gw_spawn->hChildStdoutRd, gw_spawn->hChildStdoutWr, gw_spawn->hStdoutTempFile, error);
+			dwReadStdErr = ReadFromPipe(gw_spawn->hChildStderrRd, gw_spawn->hChildStderrWr, gw_spawn->hStderrTempFile, error);
+
+			dwStatus = WaitForSingleObject(piProcInfo.hProcess, 1*1000);
+			if (dwStatus == WAIT_TIMEOUT) {
+				if (dwReadStdOut > 0 || dwReadStdErr > 0)
+					timeout_count = 0;
+				else
+					timeout_count++;
+			} else if (dwStatus == WAIT_OBJECT_0) {
+				done = TRUE; // Process has exited normally
+			}
+
+			if (timeout_count >= 30) {
+				ui_set_statusbar(FALSE, _("Process timed out after %.02f s!"), 30.0F);
+				geany_debug("CreateChildProcess: output timeout expired");
+				TerminateProcess(piProcInfo.hProcess, WAIT_TIMEOUT); /* NOTE: This will not kill grandkids. */
+				done = TRUE;
+			}
+		} while(!done);
 
 		if (!GetExitCodeProcess(piProcInfo.hProcess, &gw_spawn->dwExitCode))
 		{
@@ -1114,16 +1127,17 @@ static gboolean CreateChildProcess(geany_win32_spawn *gw_spawn, TCHAR *szCmdline
 		}
 		CloseHandle(piProcInfo.hProcess);
 		CloseHandle(piProcInfo.hThread);
-		return bFuncRetn;
+		return (bFuncRetn == TRUE);
 	}
 	return FALSE;
 }
 
 
-static VOID ReadFromPipe(HANDLE hRead, HANDLE hWrite, HANDLE hFile, GError **error)
+static DWORD ReadFromPipe(HANDLE hRead, HANDLE hWrite, HANDLE hFile, GError **error)
 {
-	DWORD dwRead, dwWritten;
+	DWORD dwTotalRead, dwRead, dwWritten;
 	CHAR chBuf[BUFSIZE];
+	BOOL bSuccess = FALSE;
 
 	/* Close the write end of the pipe before reading from the
 	   read end of the pipe. */
@@ -1133,18 +1147,24 @@ static VOID ReadFromPipe(HANDLE hRead, HANDLE hWrite, HANDLE hFile, GError **err
 		geany_debug("ReadFromPipe: Closing handle failed");
 		g_set_error(error, G_SPAWN_ERROR, G_FILE_ERROR_PIPE, "%s", msg);
 		g_free(msg);
-		return;
+		return 0;
 	}
 
-	/* Read output from the child process, and write to parent's STDOUT. */
+	dwTotalRead = 0;
+
+	/* Read output from the child process, and write to the temp file. */
 	for (;;)
 	{
-		if (! ReadFile(hRead, chBuf, BUFSIZE, &dwRead, NULL) || dwRead == 0)
+		bSuccess = ReadFile(hRead, chBuf, BUFSIZE, &dwRead, NULL);
+		dwTotalRead += dwRead;
+		if (!bSuccess  || dwRead == 0)
 			break;
 
 		if (! WriteFile(hFile, chBuf, dwRead, &dwWritten, NULL))
 			break;
 	}
+
+	return dwTotalRead;
 }
 
 
