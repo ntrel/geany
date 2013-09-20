@@ -2085,16 +2085,24 @@ static gboolean autocomplete_check_html(GeanyEditor *editor, gint style, gint po
 }
 
 
+static gint compare_words(gconstpointer a, gconstpointer b, gpointer user_data)
+{
+	gint cmp = utils_str_casecmp(a, b);
+
+	/* order case-insensitively, but keep case variants unless identical */
+	return cmp != 0 ? cmp : strcmp(a, b);
+}
+
+
 /* Algorithm based on based on Scite's StartAutoCompleteWord()
  * @returns a sorted list of words matching @p root */
-static GSList *get_doc_words(ScintillaObject *sci, gchar *root, gsize rootlen)
+static GTree *get_doc_words(ScintillaObject *sci, gchar *root, gsize rootlen)
 {
 	gchar *word;
 	gint len, current, word_end;
 	gint pos_find, flags;
 	guint word_length;
-	gsize nmatches = 0;
-	GSList *words = NULL;
+	GTree *tree = g_tree_new_full(compare_words, NULL, g_free, NULL);
 	struct Sci_TextToFind ttf;
 
 	len = sci_get_length(sci);
@@ -2120,54 +2128,56 @@ static GSList *get_doc_words(ScintillaObject *sci, gchar *root, gsize rootlen)
 			if (word_length > rootlen)
 			{
 				word = sci_get_contents_range(sci, pos_find, word_end);
-				/* search whether we already have the word in, otherwise add it */
-				if (g_slist_find_custom(words, word, (GCompareFunc)strcmp) != NULL)
-					g_free(word);
-				else
-				{
-					words = g_slist_prepend(words, word);
-					nmatches++;
-				}
+				/* insert word, or just free word if already present */
+				g_tree_insert(tree, word, NULL);
 
-				if (nmatches == editor_prefs.autocompletion_max_entries)
+				if (g_tree_nnodes(tree) == (gint)editor_prefs.autocompletion_max_entries)
 					break;
 			}
 		}
 		ttf.chrg.cpMin = word_end;
 		pos_find = scintilla_send_message(sci, SCI_FINDTEXT, flags, (uptr_t) &ttf);
 	}
+	return tree;
+}
 
-	return g_slist_sort(words, (GCompareFunc)utils_str_casecmp);
+
+static gboolean append_word(gpointer key, gpointer value, gpointer data)
+{
+	GString *str = data;
+	gchar *word = key;
+
+	g_string_append(str, word);
+	g_string_append_c(str, '\n');
+	return FALSE;
 }
 
 
 static gboolean autocomplete_doc_word(GeanyEditor *editor, gchar *root, gsize rootlen)
 {
 	ScintillaObject *sci = editor->sci;
-	GSList *words, *node;
+	GTree *tree;
 	GString *str;
-	guint n_words = 0;
 
-	words = get_doc_words(sci, root, rootlen);
-	if (!words)
+	tree = get_doc_words(sci, root, rootlen);
+	if (!tree)
 	{
 		scintilla_send_message(sci, SCI_AUTOCCANCEL, 0, 0);
+		g_tree_destroy(tree);
 		return FALSE;
 	}
 
-	str = g_string_sized_new(rootlen * 2 * 10);
-	foreach_slist(node, words)
-	{
-		g_string_append(str, node->data);
-		g_free(node->data);
-		if (node->next)
-			g_string_append_c(str, '\n');
-		n_words++;
-	}
-	if (n_words >= editor_prefs.autocompletion_max_entries)
+	str = g_string_sized_new((rootlen + 1) * g_tree_nnodes(tree));
+	g_tree_foreach(tree, append_word, str);
+
+	/* remove trailing newline */
+	if (str->len)
+		g_string_truncate(str, str->len - 1);
+	if (g_tree_nnodes(tree) >= (gint)editor_prefs.autocompletion_max_entries)
 		g_string_append(str, "\n...");
 
-	g_slist_free(words);
+	/* this also frees the node strings */
+	g_tree_destroy(tree);
 
 	show_autocomplete(sci, rootlen, str);
 	g_string_free(str, TRUE);
