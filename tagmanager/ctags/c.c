@@ -1175,9 +1175,7 @@ static tagType declToTagType (const declType declaration)
 static const char* accessField (const statementInfo *const st)
 {
 	const char* result = NULL;
-
-	if ((isLanguage (Lang_cpp) || isLanguage (Lang_d) || isLanguage (Lang_ferite))  &&
-			st->scope == SCOPE_FRIEND)
+	if (isLanguage (Lang_cpp)  &&  st->scope == SCOPE_FRIEND)
 		result = "friend";
 	else if (st->member.access != ACCESS_UNDEFINED)
 		result = accessString (st->member.access);
