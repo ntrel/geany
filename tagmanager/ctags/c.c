@@ -5,7 +5,7 @@
 *   This source code is released for free distribution under the terms of the
 *   GNU General Public License.
 *
-*   This module contains functions for parsing and scanning C, C++, D and Java
+*   This module contains functions for parsing and scanning C, C++, C#, D and Java
 *   source files.
 */
 
@@ -34,11 +34,10 @@
 #define parentDecl(st)		((st)->parent == NULL ? \
 							 DECL_NONE : (st)->parent->declaration)
 #define isType(token,t)		(boolean) ((token)->type == (t))
-#define insideEnumBody(st)	(boolean) ((st)->parent == NULL ? FALSE : \
-									   ((st)->parent->declaration == DECL_ENUM))
+#define insideEnumBody(st)  ((st)->parent == NULL ? FALSE : \
+                            (boolean) ((st)->parent->declaration == DECL_ENUM))
 #define isExternCDecl(st,c)	(boolean) ((c) == STRING_SYMBOL  && \
-									   ! (st)->haveQualifyingName && \
-									   (st)->scope == SCOPE_EXTERN)
+                    ! (st)->haveQualifyingName  && (st)->scope == SCOPE_EXTERN)
 
 #define isOneOf(c,s)		(boolean) (strchr ((s), (c)) != NULL)
 
@@ -48,41 +47,40 @@
 
 enum { NumTokens = 12 };
 
-typedef enum eException
-{
+typedef enum eException {
 	ExceptionNone, ExceptionEOF, ExceptionFormattingError,
 	ExceptionBraceFormattingError
 } exception_t;
 
 /*  Used to specify type of keyword.
  */
-typedef enum eKeywordId
-{
+typedef enum eKeywordId {
 	KEYWORD_NONE = -1,
-	KEYWORD_ATTRIBUTE, KEYWORD_ABSTRACT, KEYWORD_ALIAS,
+	KEYWORD_ALIAS, KEYWORD_ATTRIBUTE, KEYWORD_ABSTRACT,
 	KEYWORD_BOOLEAN, KEYWORD_BYTE, KEYWORD_BAD_STATE, KEYWORD_BAD_TRANS,
-	KEYWORD_BIND, KEYWORD_BIND_VAR, KEYWORD_BIT, KEYWORD_BODY,
+	KEYWORD_BIND, KEYWORD_BIND_VAR, KEYWORD_BIT,
 	KEYWORD_CASE, KEYWORD_CATCH, KEYWORD_CHAR, KEYWORD_CLASS, KEYWORD_CONST,
 	KEYWORD_CONSTRAINT, KEYWORD_COVERAGE_BLOCK, KEYWORD_COVERAGE_DEF,
 	KEYWORD_DEFAULT, KEYWORD_DELEGATE, KEYWORD_DELETE, KEYWORD_DO,
 	KEYWORD_DOUBLE,
 	KEYWORD_ELSE, KEYWORD_ENUM, KEYWORD_EXPLICIT, KEYWORD_EXTERN,
 	KEYWORD_EXTENDS, KEYWORD_EVENT,
-	KEYWORD_FINAL, KEYWORD_FINALLY, KEYWORD_FLOAT, KEYWORD_FOR, KEYWORD_FRIEND, KEYWORD_FUNCTION,
-	KEYWORD_GET, KEYWORD_GOTO,
-	KEYWORD_IF, KEYWORD_IMPLEMENTS, KEYWORD_IMPORT, KEYWORD_IN, KEYWORD_INLINE, KEYWORD_INT,
+	KEYWORD_FINAL, KEYWORD_FINALLY, KEYWORD_FLOAT, KEYWORD_FOR,
+	KEYWORD_FRIEND, KEYWORD_FUNCTION,
+	KEYWORD_GOTO,
+	KEYWORD_IF, KEYWORD_IMPLEMENTS, KEYWORD_IMPORT, KEYWORD_INLINE, KEYWORD_INT,
 	KEYWORD_INOUT, KEYWORD_INPUT, KEYWORD_INTEGER, KEYWORD_INTERFACE,
 	KEYWORD_INTERNAL,
 	KEYWORD_LOCAL, KEYWORD_LONG,
 	KEYWORD_M_BAD_STATE, KEYWORD_M_BAD_TRANS, KEYWORD_M_STATE, KEYWORD_M_TRANS,
-	KEYWORD_MODULE, KEYWORD_MUTABLE,
+	KEYWORD_MUTABLE,
 	KEYWORD_NAMESPACE, KEYWORD_NEW, KEYWORD_NEWCOV, KEYWORD_NATIVE,
 	KEYWORD_OPERATOR, KEYWORD_OUT, KEYWORD_OUTPUT, KEYWORD_OVERLOAD, KEYWORD_OVERRIDE,
 	KEYWORD_PACKED, KEYWORD_PORT, KEYWORD_PACKAGE, KEYWORD_PRIVATE,
 	KEYWORD_PROGRAM, KEYWORD_PROTECTED, KEYWORD_PUBLIC,
 	KEYWORD_REF, KEYWORD_REGISTER, KEYWORD_RETURN,
 	KEYWORD_SHADOW, KEYWORD_STATE,
-	KEYWORD_SET, KEYWORD_SHORT, KEYWORD_SIGNAL, KEYWORD_SIGNED, KEYWORD_SIZE_T, KEYWORD_STATIC,
+	KEYWORD_SHORT, KEYWORD_SIGNED, KEYWORD_SIZE_T, KEYWORD_STATIC,
 	KEYWORD_STATIC_ASSERT, KEYWORD_STRING,
 	KEYWORD_STRUCT, KEYWORD_SWITCH, KEYWORD_SYNCHRONIZED,
 	KEYWORD_TASK, KEYWORD_TEMPLATE, KEYWORD_THIS, KEYWORD_THROW,
@@ -91,7 +89,11 @@ typedef enum eKeywordId
 	KEYWORD_UINT, KEYWORD_ULONG, KEYWORD_UNION, KEYWORD_UNSIGNED, KEYWORD_USHORT,
 	KEYWORD_USING,
 	KEYWORD_VIRTUAL, KEYWORD_VOID, KEYWORD_VOLATILE,
-	KEYWORD_WCHAR_T, KEYWORD_WEAK, KEYWORD_WHILE
+	KEYWORD_WCHAR_T, KEYWORD_WHILE,
+	// D-only
+	KEYWORD_BODY, KEYWORD_IN, KEYWORD_MODULE,
+	// Vala-only
+	KEYWORD_GET, KEYWORD_SET, KEYWORD_SIGNAL, KEYWORD_WEAK
 } keywordId;
 
 /*  Used to determine whether keyword is valid for the current language and
@@ -1226,8 +1228,9 @@ static void addOtherFields (tagEntryInfo* const tag, const tagType type,
 						vStringValue (st->parentClasses);
 			}
 			if (st->implementation != IMP_DEFAULT &&
-				(isLanguage (Lang_cpp) || isLanguage (Lang_csharp) || isLanguage (Lang_vala) ||
-				 isLanguage (Lang_java) || isLanguage (Lang_d) || isLanguage (Lang_ferite)))
+				(isLanguage (Lang_cpp) || isLanguage (Lang_csharp) ||
+				 isLanguage (Lang_d) || isLanguage (Lang_java) ||
+				 isLanguage (Lang_ferite) || isLanguage (Lang_vala)))
 			{
 				tag->extensionFields.implementation =
 						implementationString (st->implementation);
