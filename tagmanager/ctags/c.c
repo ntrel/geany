@@ -91,7 +91,7 @@ typedef enum eKeywordId {
 	KEYWORD_VIRTUAL, KEYWORD_VOID, KEYWORD_VOLATILE,
 	KEYWORD_WCHAR_T, KEYWORD_WHILE,
 	// D-only
-	KEYWORD_ASSERT, KEYWORD_BODY, KEYWORD_IN, KEYWORD_MODULE,
+	KEYWORD_ASSERT, KEYWORD_BODY, KEYWORD_IN, KEYWORD_MODULE, KEYWORD_VERSION,
 	// Vala-only
 	KEYWORD_GET, KEYWORD_SET, KEYWORD_SIGNAL, KEYWORD_WEAK
 } keywordId;
@@ -505,6 +505,7 @@ static const keywordDesc KeywordTable [] = {
 	{ "unsigned",       KEYWORD_UNSIGNED,       { 1, 1, 1, 0, 0, 0, 1 } },
 	{ "ushort",         KEYWORD_USHORT,         { 0, 0, 1, 0, 0, 1, 1 } },
 	{ "using",          KEYWORD_USING,          { 0, 1, 1, 0, 0, 1, 0 } },
+	{ "version",        KEYWORD_VERSION,        { 0, 0, 0, 0, 0, 0, 1 } },
 	{ "virtual",        KEYWORD_VIRTUAL,        { 0, 1, 1, 0, 1, 1, 0 } },
 	{ "void",           KEYWORD_VOID,           { 1, 1, 1, 1, 1, 1, 1 } },
 	{ "volatile",       KEYWORD_VOLATILE,       { 1, 1, 1, 1, 0, 0, 1 } },
@@ -834,16 +835,11 @@ static boolean isContextualKeyword (const tokenInfo *const token)
 		case KEYWORD_NAMESPACE:
 		case KEYWORD_STRUCT:
 		case KEYWORD_UNION:
-		{
+		case KEYWORD_VERSION:
 			result = TRUE;
 			break;
-		}
 
-		default:
-		{
-			result = FALSE;
-			break;
-		}
+		default: result = FALSE; break;
 	}
 	return result;
 }
@@ -2026,7 +2022,6 @@ static void processToken (tokenInfo *const token, statementInfo *const st)
 		case KEYWORD_INTERFACE: st->declaration = DECL_INTERFACE;	break;
 		case KEYWORD_LONG:		st->declaration = DECL_BASE;		break;
 		case KEYWORD_OPERATOR:	readOperator (st);					break;
-		case KEYWORD_MODULE:	readPackage (st);					break;
 		case KEYWORD_PRIVATE:	setAccess (st, ACCESS_PRIVATE);		break;
 		case KEYWORD_PROTECTED:	setAccess (st, ACCESS_PROTECTED);	break;
 		case KEYWORD_PUBLIC:	setAccess (st, ACCESS_PUBLIC);		break;
@@ -2041,7 +2036,9 @@ static void processToken (tokenInfo *const token, statementInfo *const st)
 		case KEYWORD_VOLATILE:	st->declaration = DECL_BASE;		break;
 		case KEYWORD_VIRTUAL:	st->implementation = IMP_VIRTUAL;	break;
 
+		case KEYWORD_VERSION:
 		case KEYWORD_NAMESPACE: readPackageOrNamespace (st, DECL_NAMESPACE); break;
+		case KEYWORD_MODULE:	readPackage (st);					break;
 		case KEYWORD_PACKAGE:   readPackageOrNamespace (st, DECL_PACKAGE);   break;
 		case KEYWORD_EVENT:
 		{
@@ -3191,7 +3188,6 @@ static void initializeDParser (const langType language)
 	}
 	/* other keyword aliases */
 	addKeyword ("unittest", language, KEYWORD_BODY);	/* ignore */
-	addKeyword ("version", language, KEYWORD_NAMESPACE);	/* parse block */
 }
 
 static void initializeGLSLParser (const langType language)
