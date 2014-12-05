@@ -299,7 +299,6 @@ static kindOption CKinds [] = {
 	{ FALSE, 'x', "externvar",  "external variable declarations"},
 };
 
-/* Used to index into the DKinds table. */
 typedef enum
 {
 	DK_UNDEFINED = -1,
