@@ -91,7 +91,7 @@ typedef enum eKeywordId {
 	KEYWORD_VIRTUAL, KEYWORD_VOID, KEYWORD_VOLATILE,
 	KEYWORD_WCHAR_T, KEYWORD_WHILE,
 	// D-only
-	KEYWORD_BODY, KEYWORD_IN, KEYWORD_MODULE,
+	KEYWORD_ASSERT, KEYWORD_BODY, KEYWORD_IN, KEYWORD_MODULE,
 	// Vala-only
 	KEYWORD_GET, KEYWORD_SET, KEYWORD_SIGNAL, KEYWORD_WEAK
 } keywordId;
@@ -399,6 +399,7 @@ static const keywordDesc KeywordTable [] = {
 	/* keyword          keyword ID                |  |  |  |  |  |  |    */
 	{ "__attribute__",  KEYWORD_ATTRIBUTE,      { 1, 1, 1, 0, 0, 0, 1 } },
 	{ "abstract",       KEYWORD_ABSTRACT,       { 0, 0, 1, 1, 0, 1, 1 } },
+	{ "assert",         KEYWORD_ASSERT,         { 0, 0, 0, 0, 0, 0, 1 } },
 	{ "bad_state",      KEYWORD_BAD_STATE,      { 0, 0, 0, 0, 1, 0, 0 } },
 	{ "bad_trans",      KEYWORD_BAD_TRANS,      { 0, 0, 0, 0, 1, 0, 0 } },
 	{ "bind",           KEYWORD_BIND,           { 0, 0, 0, 0, 1, 0, 0 } },
@@ -2033,7 +2034,6 @@ static void processToken (tokenInfo *const token, statementInfo *const st)
 		case KEYWORD_SHORT:		st->declaration = DECL_BASE;		break;
 		case KEYWORD_SIGNED:	st->declaration = DECL_BASE;		break;
 		case KEYWORD_STRUCT:	checkIsClassEnum (st, DECL_STRUCT);	break;
-		case KEYWORD_STATIC_ASSERT: skipParens ();                  break;
 		case KEYWORD_THROWS:	discardTypeList (token);			break;
 		case KEYWORD_TYPEDEF:	st->scope	= SCOPE_TYPEDEF;		break;
 		case KEYWORD_UNION:		st->declaration = DECL_UNION;		break;
@@ -2077,14 +2077,17 @@ static void processToken (tokenInfo *const token, statementInfo *const st)
 			}
 			break;
 		}
+		case KEYWORD_ASSERT:
 		case KEYWORD_IF:
-			if (isLanguage (Lang_d))
-			{	/* static if (is(typeof(__traits(getMember, a, name)) == function)) */
-				int c = skipToNonWhite ();
-				if (c == '(')
-					skipToMatch ("()");
-			}
+			if (!isLanguage (Lang_d)) break;
+			/* skip D 'static assert(...)', 'static if (...)' */
+		case KEYWORD_STATIC_ASSERT:
+		{
+			int c = skipToNonWhite ();
+			if (c == '(')
+				skipToMatch ("()");
 			break;
+		}
 	}
 }
 
@@ -3188,8 +3191,6 @@ static void initializeDParser (const langType language)
 	}
 	/* other keyword aliases */
 	addKeyword ("alias", language, KEYWORD_TYPEDEF);
-	/* skip 'static assert(...)' like 'static if (...)' */
-	addKeyword ("assert", language, KEYWORD_IF);
 	addKeyword ("unittest", language, KEYWORD_BODY);	/* ignore */
 	addKeyword ("version", language, KEYWORD_NAMESPACE);	/* parse block */
 }
