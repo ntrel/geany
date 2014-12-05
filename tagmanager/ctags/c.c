@@ -398,6 +398,7 @@ static const keywordDesc KeywordTable [] = {
 	/* keyword          keyword ID                |  |  |  |  |  |  |    */
 	{ "__attribute__",  KEYWORD_ATTRIBUTE,      { 1, 1, 1, 0, 0, 0, 1 } },
 	{ "abstract",       KEYWORD_ABSTRACT,       { 0, 0, 1, 1, 0, 1, 1 } },
+	{ "alias",          KEYWORD_ALIAS,          { 0, 0, 0, 0, 0, 0, 1 } },
 	{ "assert",         KEYWORD_ASSERT,         { 0, 0, 0, 0, 0, 0, 1 } },
 	{ "bad_state",      KEYWORD_BAD_STATE,      { 0, 0, 0, 0, 1, 0, 0 } },
 	{ "bad_trans",      KEYWORD_BAD_TRANS,      { 0, 0, 0, 0, 1, 0, 0 } },
@@ -856,7 +857,7 @@ static boolean isContextualStatement (const statementInfo *const st)
 	{
 		if (isLanguage (Lang_vala))
 		{
-			/* All can be a contextual statment as properties can be of any type */
+			/* All can be a contextual statement as properties can be of any type */
 			result = TRUE;
 		}
 		else
@@ -2034,7 +2035,6 @@ static void processToken (tokenInfo *const token, statementInfo *const st)
 		case KEYWORD_SIGNED:	st->declaration = DECL_BASE;		break;
 		case KEYWORD_STRUCT:	checkIsClassEnum (st, DECL_STRUCT);	break;
 		case KEYWORD_THROWS:	discardTypeList (token);			break;
-		case KEYWORD_TYPEDEF:	st->scope	= SCOPE_TYPEDEF;		break;
 		case KEYWORD_UNION:		st->declaration = DECL_UNION;		break;
 		case KEYWORD_UNSIGNED:	st->declaration = DECL_BASE;		break;
 		case KEYWORD_USING:		st->declaration = DECL_IGNORE;		break;
@@ -2050,6 +2050,11 @@ static void processToken (tokenInfo *const token, statementInfo *const st)
 				st->declaration = DECL_EVENT;
 			break;
 		}
+		case KEYWORD_ALIAS:
+		case KEYWORD_TYPEDEF:
+			//reinitStatement (st, FALSE);
+			st->scope = SCOPE_TYPEDEF;
+			break;
 		case KEYWORD_SIGNAL:
 		{
 			if (isLanguage (Lang_vala))
@@ -2248,6 +2253,7 @@ static boolean skipPostArgumentStuff (statementInfo *const st,
 					case KEYWORD_TRY:						break;
 					case KEYWORD_VOLATILE:					break;
 
+					case KEYWORD_ALIAS:
 					case KEYWORD_CATCH:			case KEYWORD_CLASS:
 					case KEYWORD_EXPLICIT:		case KEYWORD_EXTERN:
 					case KEYWORD_FRIEND:		case KEYWORD_INLINE:
@@ -3189,7 +3195,6 @@ static void initializeDParser (const langType language)
 		addKeyword (*s, language, KEYWORD_CONST);
 	}
 	/* other keyword aliases */
-	addKeyword ("alias", language, KEYWORD_TYPEDEF);
 	addKeyword ("unittest", language, KEYWORD_BODY);	/* ignore */
 	addKeyword ("version", language, KEYWORD_NAMESPACE);	/* parse block */
 }
