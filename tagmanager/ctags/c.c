@@ -151,7 +151,6 @@ typedef enum eDeclaration
 	DECL_FUNCTION_TEMPLATE,
 	DECL_IGNORE,		/* non-taggable "declaration" */
 	DECL_INTERFACE,
-	DECL_MODULE,
 	DECL_NAMESPACE,
 	DECL_NOMANGLE,		/* C++ name demangling block */
 	DECL_PACKAGE,
@@ -303,7 +302,7 @@ typedef enum
 {
 	DK_UNDEFINED = -1,
 	DK_CLASS, DK_ENUMERATOR, DK_FUNCTION,
-	DK_ENUMERATION, DK_INTERFACE, DK_MEMBER, DK_NAMESPACE, DK_PROTOTYPE,
+	DK_ENUMERATION, DK_INTERFACE, DK_MEMBER, DK_MODULE, DK_NAMESPACE, DK_PROTOTYPE,
 	DK_STRUCT, DK_TYPEDEF, DK_UNION, DK_VARIABLE,
 	DK_EXTERN_VARIABLE
 } dKind;
@@ -315,6 +314,7 @@ static kindOption DKinds [] = {
 	{ TRUE,  'g', "enum",       "enumeration names"},
 	{ TRUE,  'i', "interface",  "interfaces"},
 	{ TRUE,  'm', "member",     "class, struct, and union members"},
+	{ TRUE,  'M', "package",    "modules"},
 	{ TRUE,  'n', "namespace",  "namespaces"},
 	{ FALSE, 'p', "prototype",  "function prototypes"},
 	{ TRUE,  's', "struct",     "structure names"},
@@ -717,7 +717,7 @@ static const char *declString (const declType declaration)
 {
 	static const char *const names [] = {
 		"?", "base", "class", "enum", "event", "signal", "function",
-		"function template", "ignore", "interface", "module", "namespace",
+		"function template", "ignore", "interface", "namespace",
 		"no mangle", "package", "struct", "union",
 	};
 	Assert (sizeof (names) / sizeof (names [0]) == DECL_COUNT);
@@ -1052,6 +1052,7 @@ static dKind dTagKind (const tagType type)
 		case TAG_INTERFACE:  result = DK_INTERFACE;       break;
 		case TAG_MEMBER:     result = DK_MEMBER;          break;
 		case TAG_NAMESPACE:  result = DK_NAMESPACE;       break;
+		case TAG_PACKAGE:    result = DK_MODULE;          break;
 		case TAG_PROTOTYPE:  result = DK_PROTOTYPE;       break;
 		case TAG_STRUCT:     result = DK_STRUCT;          break;
 		case TAG_TYPEDEF:    result = DK_TYPEDEF;         break;
@@ -1541,8 +1542,6 @@ static void qualifyVariableTag (const statementInfo *const st,
 		makeTag (nameToken, st, TRUE, TAG_TYPEDEF);
 	else if (st->declaration == DECL_PACKAGE)
 		makeTag (nameToken, st, FALSE, TAG_PACKAGE);
-	else if (st->declaration == DECL_MODULE) /* handle modules in D as namespaces */
-		makeTag (nameToken, st, FALSE, TAG_NAMESPACE);
 	else if (isValidTypeSpecifier (st->declaration))
 	{
 		if (isMember (st))
@@ -1807,20 +1806,6 @@ static void readPackageOrNamespace (statementInfo *const st, const declType decl
 	}
 }
 
-static void readPackage (statementInfo *const st)
-{
-	tokenInfo *const token = activeToken (st);
-	Assert (isType (token, TOKEN_KEYWORD));
-	readPackageName (token, skipToNonWhite ());
-	token->type = TOKEN_NAME;
-	if (isLanguage (Lang_d))
-		st->declaration = DECL_MODULE;
-	else
-		st->declaration = DECL_PACKAGE;
-	st->gotName = TRUE;
-	st->haveQualifyingName = TRUE;
-}
-
 static void processName (statementInfo *const st)
 {
 	Assert (isType (activeToken (st), TOKEN_NAME));
@@ -2038,7 +2023,7 @@ static void processToken (tokenInfo *const token, statementInfo *const st)
 
 		case KEYWORD_VERSION:
 		case KEYWORD_NAMESPACE: readPackageOrNamespace (st, DECL_NAMESPACE); break;
-		case KEYWORD_MODULE:	readPackage (st);					break;
+		case KEYWORD_MODULE:
 		case KEYWORD_PACKAGE:   readPackageOrNamespace (st, DECL_PACKAGE);   break;
 		case KEYWORD_EVENT:
 		{
@@ -3011,7 +2996,7 @@ static void tagCheck (statementInfo *const st)
 				else
 				{
 					tokenInfo *contextual_token = (tokenInfo *)prev;
-					if(isContextualKeyword (contextual_token))
+					if (isContextualKeyword (contextual_token))
 					{
 						char buffer[64];
 
