@@ -1,11 +1,15 @@
 # format=tagmanager
 AliasIntÌ4096Ö0
+CTÌ1ÎClassÖ0
 ClassÌ1Ö0
 EnumÌ2Ö0
+ITÌ32Ö0
 InterfaceÌ32Ö0
+STÌ2048Ö0
 StructÌ2048Ö0
 TemplateÌ256Ö0
 TemplateAliasÌ4096ÎTemplateÖ0
+UTÌ8192Ö0
 UnionÌ8192ÎStructÖ0
 _barÌ64ÎClassÖ0ÏAliasInt
 barÌ4ÎEnumÖ0
@@ -15,10 +19,12 @@ conditionalÌ16384Ö0ÏT
 fooÌ4ÎEnumÖ0
 globalVarÌ16384Ö0Ï__gshared
 iÌ16384Ö0Ïint
+m_enumÌ32768Ö0
 mainÌ16Í(string[] args)Ö0Ïvoid
+memberÌ64ÎClass.CTÖ0ÏT
 objÌ16384Ö0ÏObject
 qarÌ64ÎStruct.UnionÖ0Ïint
 quxxÌ64ÎStruct.UnionÖ0Ïbool
-test.simpleÌ256Ö0
+test.simpleÌ512Ö0
 tfunÌ16Í(T)ÎClassÖ0Ïauto
 thisÌ16Í(AliasInt x)ÎClassÖ0

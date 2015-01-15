@@ -43,12 +43,26 @@ class Class : Interface
 	{
 		return v;
 	}
+	
+	class CT(T)
+	{
+		T member;
+		enum m_enum = T.init; // FIXME - parsed as extern
+	}
 }
 
 public
 {
-	int missing; // FIXME - parse protection blocks
+	int missing; // FIXME - parse attribute blocks
 }
+
+// declaration templates
+interface IT(T){}
+struct ST(T){}
+union UT(T){}
+// FIXME - parsed as 'T'
+//alias AT(T) = T;
+//enum ET(T) = T.init;
 
 template Template(alias a, T...)
 {

@@ -2942,10 +2942,11 @@ static void tagCheck (statementInfo *const st)
 				{
 					if (isType (prev2, TOKEN_NAME))
 						copyToken (st->blockName, prev2);
-					/* D structure templates */
+					/* D declaration templates */
 					if (isLanguage (Lang_d) &&
 						(st->declaration == DECL_CLASS || st->declaration == DECL_STRUCT ||
-						st->declaration == DECL_INTERFACE || st->declaration == DECL_NAMESPACE))
+						st->declaration == DECL_INTERFACE || st->declaration == DECL_UNION ||
+						st->declaration == DECL_NAMESPACE))
 						qualifyBlockTag (st, prev2);
 					else
 					{
