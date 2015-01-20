@@ -2235,18 +2235,27 @@ static boolean skipPostArgumentStuff (statementInfo *const st,
 					case KEYWORD_VOLATILE:					break;
 
 					case KEYWORD_ALIAS:
-					case KEYWORD_CATCH:			case KEYWORD_CLASS:
-					case KEYWORD_EXPLICIT:		case KEYWORD_EXTERN:
-					case KEYWORD_FRIEND:		case KEYWORD_INLINE:
-					case KEYWORD_MUTABLE:		case KEYWORD_NAMESPACE:
-					case KEYWORD_NEW:			case KEYWORD_OPERATOR:
-					case KEYWORD_OVERLOAD:		case KEYWORD_PRIVATE:
-					case KEYWORD_PROTECTED:		case KEYWORD_PUBLIC:
-					case KEYWORD_STATIC:		case KEYWORD_TEMPLATE:
-					case KEYWORD_TYPEDEF:		case KEYWORD_TYPENAME:
-					case KEYWORD_USING:			case KEYWORD_VIRTUAL:
-						/*  Never allowed within parameter declarations.
-						 */
+					case KEYWORD_CATCH:
+					case KEYWORD_CLASS:
+					case KEYWORD_EXPLICIT:
+					case KEYWORD_EXTERN:
+					case KEYWORD_FRIEND:
+					case KEYWORD_INLINE:
+					case KEYWORD_MUTABLE:
+					case KEYWORD_NAMESPACE:
+					case KEYWORD_NEW:
+					case KEYWORD_OPERATOR:
+					case KEYWORD_OVERLOAD:
+					case KEYWORD_PRIVATE:
+					case KEYWORD_PROTECTED:
+					case KEYWORD_PUBLIC:
+					case KEYWORD_STATIC:
+					case KEYWORD_TEMPLATE:
+					case KEYWORD_TYPEDEF:
+					case KEYWORD_TYPENAME:
+					case KEYWORD_USING:
+					case KEYWORD_VIRTUAL:
+						/* Never allowed within parameter declarations. */
 						restart = TRUE;
 						end = TRUE;
 						break;
