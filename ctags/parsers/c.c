@@ -2188,6 +2188,7 @@ static bool isDPostArgumentToken(tokenInfo *const token)
 		case KEYWORD_IN:
 		case KEYWORD_OUT:
 		case KEYWORD_BODY:
+		case KEYWORD_RETURN:
 			return true;
 		default:
 			break;
@@ -3199,7 +3200,8 @@ static void initializeDParser (const langType language)
 {
 	/* treat these like const - some are for parsing like const(Type), some are just
 	 * function attributes */
-	const char *const_aliases[] = {"immutable", "nothrow", "pure", "shared", NULL};
+	const char *const_aliases[] = {"immutable", "nothrow",
+		"pure", "scope", "shared", "typeof", NULL};
 	const char **s;
 
 	Lang_d = language;
