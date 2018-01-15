@@ -121,7 +121,7 @@ typedef enum eTokenType
 	TOKEN_PAREN_NAME,    /* a single name in parentheses */
 	TOKEN_SEMICOLON,     /* the semicolon character */
 	TOKEN_SPEC,          /* a storage class specifier, qualifier, type, etc. */
-	/* Following used for tagEntryInfo::extensionFields.varType: */
+	/* Following fields used for tagEntryInfo::extensionFields.varType: */
 	TOKEN_STAR,          /* pointer detection */
 	TOKEN_ARRAY,         /* array detection */
 	TOKEN_COUNT
@@ -3069,8 +3069,8 @@ static void tagCheck (statementInfo *const st)
 			break;
 		}
 		case TOKEN_ARRAY:
-			/* fix extra E tag for `enum E[] id`, `someAttr E[] id` */
-			if (isInputLanguage(Lang_d) && prev2->type == TOKEN_KEYWORD && !isDataTypeKeyword(prev2))
+			/* fix extra E tag for `enum E[] id`, `E[] id` */
+			if (isInputLanguage(Lang_d))
 				break;
 		case TOKEN_SEMICOLON:
 		case TOKEN_COMMA:

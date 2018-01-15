@@ -1,14 +1,23 @@
 alias E = int;
-// all code below should not generate a tag for E
-enum E[] id = [1];
-typeof(5) num;
+// code below should not generate extra tags for E
+E[] arr;
+// varType: E
+enum E[] ea = [1];
 
-struct S
+struct S1
+{
+	const E[] e();
+	scope E[] f();
+	E[] g();
+}
+
+// varType: i
+typeof(S2().i) num;
+
+struct S2
 {
 	int i;
 	
-	const E[] e();
-	E[] f() scope;
-	ref int g() return {return i;}
-	typeof(null) h();
+	typeof(null) h() scope;
+	ref int j() return {return i;}
 }
