@@ -61,7 +61,7 @@ enum eKeywordId
 {
 	KEYWORD_ATTRIBUTE, KEYWORD_ABSTRACT, KEYWORD_ALIAS,
 	KEYWORD_BOOLEAN, KEYWORD_BYTE, KEYWORD_BAD_STATE, KEYWORD_BAD_TRANS,
-	KEYWORD_BIND, KEYWORD_BIND_VAR, KEYWORD_BIT, KEYWORD_BODY,
+	KEYWORD_BIND, KEYWORD_BIND_VAR, KEYWORD_BIT,
 	KEYWORD_CASE, KEYWORD_CATCH, KEYWORD_CHAR, KEYWORD_CLASS, KEYWORD_CONST,
 	KEYWORD_CONSTRAINT, KEYWORD_COVERAGE_BLOCK, KEYWORD_COVERAGE_DEF,
 	KEYWORD_DEFAULT, KEYWORD_DELEGATE, KEYWORD_DELETE, KEYWORD_DO,
@@ -404,7 +404,6 @@ static const keywordDesc KeywordTable [] = {
 	{ "bind",           KEYWORD_BIND,           { 0, 0, 0, 0, 1, 0, 0 } },
 	{ "bind_var",       KEYWORD_BIND_VAR,       { 0, 0, 0, 0, 1, 0, 0 } },
 	{ "bit",            KEYWORD_BIT,            { 0, 0, 0, 0, 1, 0, 0 } },
-	{ "body",           KEYWORD_BODY,           { 0, 0, 0, 0, 0, 0, 1 } },
 	{ "boolean",        KEYWORD_BOOLEAN,        { 0, 0, 0, 1, 0, 0, 0 } },
 	{ "byte",           KEYWORD_BYTE,           { 0, 0, 0, 1, 0, 0, 1 } },
 	{ "case",           KEYWORD_CASE,           { 1, 1, 1, 1, 0, 1, 1 } },
@@ -2188,7 +2187,7 @@ static bool isDPostArgumentToken(tokenInfo *const token)
 		/* contracts */
 		case KEYWORD_IN:
 		case KEYWORD_OUT:
-		case KEYWORD_BODY:
+		case KEYWORD_DO:
 		/* return attribute */
 		case KEYWORD_RETURN:
 			return true;
@@ -3220,7 +3219,7 @@ static void initializeDParser (const langType language)
 	addKeyword ("alias", language, KEYWORD_TYPEDEF);
 	/* skip 'static assert(...)' like 'static if (...)' */
 	addKeyword ("assert", language, KEYWORD_IF);
-	addKeyword ("unittest", language, KEYWORD_BODY);	/* ignore */
+	addKeyword ("unittest", language, KEYWORD_IN);	/* ignore */
 	addKeyword ("version", language, KEYWORD_NAMESPACE);	/* parse block */
 }
 
