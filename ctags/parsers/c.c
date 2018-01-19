@@ -2949,6 +2949,26 @@ static void nest (statementInfo *const st, const unsigned int nestLevel)
 	setToken (st, TOKEN_BRACE_CLOSE);
 }
 
+static bool isDBlockAttribute(const tokenInfo *const token)
+{
+	switch (token->keyword)
+	{
+		/* Note: some other keywords e.g. immutable are parsed as
+		 * KEYWORD_CONST - see initializeDParser */
+		case KEYWORD_CONST:
+		case KEYWORD_PUBLIC:
+		case KEYWORD_PROTECTED:
+		case KEYWORD_PRIVATE:
+			return true;
+		default:
+			break;
+	}
+	/* @attributes */
+	if (vStringValue(token->name)[0] == '@')
+		return true;
+	return false;
+}
+
 static void tagCheck (statementInfo *const st)
 {
 	const tokenInfo *const token = activeToken (st);
@@ -2994,6 +3014,11 @@ static void tagCheck (statementInfo *const st)
 						qualifyFunctionTag (st, prev2);
 					}
 				}
+			}
+			else if (isInputLanguage(Lang_d) && isDBlockAttribute(prev))
+			{
+				st->declaration = DECL_ENUM;
+				qualifyBlockTag(st, st->blockName);
 			}
 			else if (isContextualStatement (st))
 			{
