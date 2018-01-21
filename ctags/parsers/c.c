@@ -2956,6 +2956,7 @@ static bool isDBlockAttribute(const tokenInfo *const token)
 		/* Note: some other keywords e.g. immutable are parsed as
 		 * KEYWORD_CONST - see initializeDParser */
 		case KEYWORD_CONST:
+		case KEYWORD_FINAL:
 		case KEYWORD_PUBLIC:
 		case KEYWORD_PROTECTED:
 		case KEYWORD_PRIVATE:
@@ -3017,7 +3018,7 @@ static void tagCheck (statementInfo *const st)
 			}
 			else if (isInputLanguage(Lang_d) && isDBlockAttribute(prev))
 			{
-				st->declaration = DECL_ENUM;
+				st->declaration = DECL_NAMESPACE;
 				qualifyBlockTag(st, st->blockName);
 			}
 			else if (isContextualStatement (st))
@@ -3229,7 +3230,7 @@ static void initializeDParser (const langType language)
 {
 	/* treat these like const - some are for parsing like const(Type), some are just
 	 * function attributes */
-	const char *const_aliases[] = {"immutable", "nothrow",
+	const char *const_aliases[] = {"deprecated", "immutable", "nothrow",
 		"pure", "scope", "shared", "typeof", NULL};
 	const char **s;
 
