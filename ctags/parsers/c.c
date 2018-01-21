@@ -2175,7 +2175,7 @@ static void skipMacro (statementInfo *const st)
 	skipToMatch ("()");
 }
 
-static bool isDPostArgumentToken(tokenInfo *const token)
+static bool isDPostParamToken(tokenInfo *const token)
 {
 	switch (token->keyword)
 	{
@@ -2261,7 +2261,7 @@ static bool skipPostArgumentStuff (
 				if (cppIsident1 (c))
 				{
 					readIdentifier (token, c);
-					if (isInputLanguage(Lang_d) && isDPostArgumentToken(token))
+					if (isInputLanguage(Lang_d) && isDPostParamToken(token))
 						token->keyword = KEYWORD_CONST;
 
 					switch (token->keyword)
