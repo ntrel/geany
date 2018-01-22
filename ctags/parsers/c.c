@@ -1731,6 +1731,11 @@ static keywordId analyzeKeyword (const char *const name)
 		skipParens(); /* if annotation has parameters, skip them */
 		return KEYWORD_CONST;
 	}
+	else if (isInputLanguage(Lang_d) && id == KEYWORD_NAMESPACE)
+	{
+		skipParens(); /* if keyword has parameters, skip them */
+		return KEYWORD_CONST;
+	}
 	return id;
 }
 
@@ -3230,7 +3235,7 @@ static void initializeDParser (const langType language)
 {
 	/* treat these like const - some are for parsing like const(Type), some are just
 	 * function attributes */
-	const char *const_aliases[] = {"deprecated", "immutable", "nothrow",
+	const char *const_aliases[] = {"immutable", "nothrow",
 		"pure", "scope", "shared", "typeof", NULL};
 	const char **s;
 
@@ -3246,6 +3251,7 @@ static void initializeDParser (const langType language)
 	/* skip 'static assert(...)' like 'static if (...)' */
 	addKeyword ("assert", language, KEYWORD_IF);
 	addKeyword ("unittest", language, KEYWORD_IN);	/* ignore */
+	addKeyword ("deprecated", language, KEYWORD_NAMESPACE);	/* parse block */
 	addKeyword ("version", language, KEYWORD_NAMESPACE);	/* parse block */
 }
 

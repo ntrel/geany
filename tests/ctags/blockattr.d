@@ -8,13 +8,16 @@ public
 	@safe {
 		alias safe = int;
 	}
-	deprecated {
+	
+	deprecated("") {
 		T dep;
 		alias T = int;
 	}
-	
 	version(None){
 		class Ver {}
+	}
+	extern(C){
+		void ext() {}
 	}
 	
 	// ! parsed as member not function
@@ -22,3 +25,7 @@ public
 	void constant();
 }
 
+void f() final
+{
+	int error;
+}
