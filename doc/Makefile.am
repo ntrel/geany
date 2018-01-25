@@ -41,7 +41,8 @@ EXTRA_DIST = \
 	geany.html \
 	geany.css \
 	geany.txt \
-	geany.1
+	geany.1 \
+	makefile.win32
 
 # HTML user manual and hacking file
 if WITH_RST2HTML
