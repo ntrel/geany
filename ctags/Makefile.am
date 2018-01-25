@@ -6,6 +6,9 @@ AM_CFLAGS = \
 	$(GTK_CFLAGS) \
 	@LIBGEANY_CFLAGS@
 
+EXTRA_DIST = \
+	makefile.win32
+
 noinst_LTLIBRARIES = libctags.la
 
 parsers = \

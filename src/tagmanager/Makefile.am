@@ -7,6 +7,9 @@ AM_CFLAGS = \
 	$(GTK_CFLAGS) \
 	@LIBGEANY_CFLAGS@
 
+EXTRA_DIST = \
+	makefile.win32
+
 noinst_LTLIBRARIES = libtagmanager.la
 
 tagmanager_includedir = $(includedir)/geany/tagmanager
