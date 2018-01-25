@@ -30,9 +30,9 @@ RM = rm -f
 endif
 
 all: config.h
-	$(MAKE) -C tagmanager/ctags -f makefile.win32
-	$(MAKE) -C tagmanager/mio -f makefile.win32
-	$(MAKE) -C tagmanager/src -f makefile.win32
+	$(MAKE) -C ctags/parsers -f makefile.win32
+	$(MAKE) -C ctags/main -f makefile.win32
+	$(MAKE) -C src/tagmanager -f makefile.win32
 	$(MAKE) -C scintilla/gtk -f makefile.win32
 	$(MAKE) -C plugins -f makefile.win32
 	$(MAKE) -C src -f makefile.win32
@@ -45,9 +45,9 @@ clean-local:
 	-$(RM) geany_private.res geany.exe
 
 clean:
-	$(MAKE) -C tagmanager/ctags -f makefile.win32 clean
-	$(MAKE) -C tagmanager/mio -f makefile.win32 clean
-	$(MAKE) -C tagmanager/src -f makefile.win32 clean
+	$(MAKE) -C ctags/main -f makefile.win32 clean
+	$(MAKE) -C ctags/parsers -f makefile.win32 clean
+	$(MAKE) -C src/tagmanager -f makefile.win32 clean
 	$(MAKE) -C scintilla/gtk -f makefile.win32 clean
 	$(MAKE) -C plugins -f makefile.win32 clean
 	$(MAKE) -C src -f makefile.win32 clean
