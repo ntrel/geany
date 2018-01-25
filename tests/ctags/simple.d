@@ -45,11 +45,6 @@ class Class : Interface
 	}
 }
 
-public
-{
-	int missing; // FIXME - parse protection blocks
-}
-
 template Template(alias a, T...)
 {
 	alias TemplateAlias = a!T;
@@ -71,12 +66,14 @@ static assert( num < TL.length, "Name '"~name~"' is not found");
 
 __gshared int globalVar;
 
+// old alias syntax
+alias string AliasString;
+
 void main(string[] args)
 {
 	auto foo = new Class(1337);
-
-	alias string AliasString;
 	AliasString baz = "Hello, World!";
 
 	writefln("%s", foo.bar());
 }
+
