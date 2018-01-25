@@ -38,6 +38,7 @@ Makefile.in
 /geany.gladep.bak
 /geany.pc
 /geany.nsi
+/geany_private.res
 /global.tags.old
 /install-sh
 /intltool

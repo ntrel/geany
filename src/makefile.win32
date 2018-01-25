@@ -38,8 +38,7 @@ GTK_INCLUDES= \
 
 INCLUDEDIRS=  -I.. \
               -I../scintilla/include \
-              -I../tagmanager/mio \
-              -I../tagmanager/src \
+              -I../src/tagmanager \
               $(GTK_INCLUDES)
 
 ALL_GTK_LIBS= \
@@ -63,12 +62,15 @@ else
 CFLAGS=-O2 $(CBASEFLAGS)
 endif
 
-OBJS =	about.o build.o callbacks.o dialogs.o document.o editor.o encodings.o filetypes.o \
-		geanyentryaction.o geanymenubuttonaction.o geanyobject.o geanywraplabel.o highlighting.o \
-		keybindings.o keyfile.o log.o main.o msgwindow.o navqueue.o notebook.o \
-		plugins.o pluginutils.o prefs.o printing.o project.o sciwrappers.o search.o \
-		socket.o spawn.o stash.o symbols.o templates.o toolbar.o tools.o sidebar.o \
-		ui_utils.o utils.o win32.o
+OBJS =	about.o geanyentryaction.o main.o printing.o templates.o \
+build.o geanymenubuttonaction.o msgwindow.o project.o toolbar.o \
+callbacks.o geanyobject.o navqueue.o sciwrappers.o tools.o \
+dialogs.o geanywraplabel.o notebook.o search.o ui_utils.o \
+document.o highlighting.o sidebar.o utils.o \
+editor.o keybindings.o plugins.o socket.o \
+encodings.o keyfile.o pluginutils.o spawn.o win32.o \
+filetypes.o libmain.o prefix.o stash.o \
+log.o prefs.o symbols.o
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -83,8 +85,8 @@ clean:
 	-$(RM) deps.mak *.o
 	$(MAKE) -C .. -f makefile.win32 clean-local
 
-STLIBS = ../scintilla/scintilla.a ../tagmanager/ctags/ctags.a \
-	../tagmanager/mio/mio.a ../tagmanager/src/tagmanager.a
+STLIBS = ../scintilla/scintilla.a ../ctags/main/ctags.a \
+	tagmanager/tagmanager.a
 
 $(TARGET): $(OBJS) $(RES) $(STLIBS)
 	$(CXX) $(OBJS) $(RES) -o $(TARGET) $(STLIBS) $(ALL_GTK_LIBS) $(WIN_LIBS)
