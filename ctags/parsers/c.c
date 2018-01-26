@@ -424,8 +424,7 @@ static const keywordDesc KeywordTable [] = {
 	{ "event",          KEYWORD_EVENT,          { 0, 0, 1, 0, 1, 0, 0 } },
 	{ "explicit",       KEYWORD_EXPLICIT,       { 0, 1, 1, 0, 0, 0, 1 } },
 	{ "extends",        KEYWORD_EXTENDS,        { 0, 0, 0, 1, 1, 0, 0 } },
-	{ "extern",         KEYWORD_EXTERN,         { 1, 1, 1, 0, 1, 1, 0 } },
-	{ "extern",         KEYWORD_NAMESPACE,      { 0, 0, 0, 0, 0, 0, 1 } },	/* parse block */
+	{ "extern",         KEYWORD_EXTERN,         { 1, 1, 1, 0, 1, 1, 1 } },
 	{ "final",          KEYWORD_FINAL,          { 0, 0, 0, 1, 0, 0, 1 } },
 	{ "finally",        KEYWORD_FINALLY,        { 0, 0, 0, 0, 0, 1, 1 } },
 	{ "float",          KEYWORD_FLOAT,          { 1, 1, 1, 1, 0, 1, 1 } },
@@ -489,7 +488,7 @@ static const keywordDesc KeywordTable [] = {
 	{ "synchronized",   KEYWORD_SYNCHRONIZED,   { 0, 0, 0, 1, 0, 0, 1 } },
 	{ "task",           KEYWORD_TASK,           { 0, 0, 0, 0, 1, 0, 0 } },
 	{ "template",       KEYWORD_TEMPLATE,       { 0, 1, 0, 0, 0, 0, 0 } },
-	{ "template",       KEYWORD_NAMESPACE,      { 0, 0, 0, 0, 0, 0, 1 } },	/* parse block */
+	{ "template",       KEYWORD_NAMESPACE,      { 0, 0, 0, 0, 0, 0, 1 } },	/* parse like namespace */
 	{ "this",           KEYWORD_THIS,           { 0, 0, 1, 1, 0, 1, 0 } },	/* 0 to allow D ctor tags */
 	{ "throw",          KEYWORD_THROW,          { 0, 1, 1, 1, 0, 1, 1 } },
 	{ "throws",         KEYWORD_THROWS,         { 0, 0, 0, 1, 0, 1, 0 } },
@@ -1731,7 +1730,7 @@ static keywordId analyzeKeyword (const char *const name)
 		skipParens(); /* if annotation has parameters, skip them */
 		return KEYWORD_CONST;
 	}
-	else if (isInputLanguage(Lang_d) && id == KEYWORD_NAMESPACE)
+	else if (isInputLanguage(Lang_d) && id == KEYWORD_EXTERN)
 	{
 		/* if keyword has parameters, skip them */
 		skipParens();
@@ -1841,6 +1840,8 @@ static void readPackageOrNamespace (statementInfo *const st, const declType decl
 		tokenInfo *const token = activeToken (st);
 		Assert (isType (token, TOKEN_KEYWORD));
 		readPackageName (token, skipToNonWhite ());
+		if (!token->name->length)
+			return;
 		token->type = TOKEN_NAME;
 		st->gotName = true;
 		st->haveQualifyingName = true;
@@ -2963,10 +2964,11 @@ static bool isDBlockAttribute(const tokenInfo *const token)
 {
 	switch (token->keyword)
 	{
-		/* Note: some other keywords e.g. immutable are parsed as
+		/* Note: some other keywords are aliases e.g. immutable maps to
 		 * KEYWORD_CONST - see initializeDParser */
 		case KEYWORD_CONST:
 		case KEYWORD_FINAL:
+		case KEYWORD_OVERRIDE:
 		case KEYWORD_PUBLIC:
 		case KEYWORD_PROTECTED:
 		case KEYWORD_PRIVATE:
@@ -3026,8 +3028,11 @@ static void tagCheck (statementInfo *const st)
 					}
 				}
 			}
-			else if (isInputLanguage(Lang_d) && isDBlockAttribute(prev))
+			else if (isInputLanguage(Lang_d) && st->tokenIndex <= 2 &&
+				isDBlockAttribute(prev))
 			{
+				printf("%d\n", st->tokenIndex);
+				//~ st->declaration = DECL_NOMANGLE;
 				st->declaration = DECL_NAMESPACE;
 				qualifyBlockTag(st, st->blockName);
 			}
@@ -3256,8 +3261,8 @@ static void initializeDParser (const langType language)
 	/* skip 'static assert(...)' like 'static if (...)' */
 	addKeyword ("assert", language, KEYWORD_IF);
 	addKeyword ("unittest", language, KEYWORD_IN);	/* ignore */
-	addKeyword ("deprecated", language, KEYWORD_NAMESPACE);	/* parse block */
-	addKeyword ("version", language, KEYWORD_NAMESPACE);	/* parse block */
+	addKeyword ("deprecated", language, KEYWORD_EXTERN);	/* parse block */
+	addKeyword ("version", language, KEYWORD_EXTERN);	/* parse block */
 }
 
 static void initializeGLSLParser (const langType language)
