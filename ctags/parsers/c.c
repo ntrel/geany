@@ -1733,7 +1733,12 @@ static keywordId analyzeKeyword (const char *const name)
 	}
 	else if (isInputLanguage(Lang_d) && id == KEYWORD_NAMESPACE)
 	{
-		skipParens(); /* if keyword has parameters, skip them */
+		/* if keyword has parameters, skip them */
+		skipParens();
+		/* ignore `attribute:` */
+		int c = cppGetc();
+		if (c != ':')
+			cppUngetc(c);
 		return KEYWORD_CONST;
 	}
 	return id;

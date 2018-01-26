@@ -22,7 +22,7 @@ public
 		void ext() {}
 	}
 	
-	// ! parsed as member not function
-@trusted:
-	void constant();
+	// ! member, not func
+	@safe:
+		T safeFun();
 }

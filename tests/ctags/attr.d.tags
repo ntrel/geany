@@ -1,0 +1,11 @@
+# format=tagmanager
+VerÌ1Ö0
+attFunÌ1024Í()Ö0Ï@att T
+diÌ16384Ö0Ïdeprecated int
+djÌ16384Ö0Ïdeprecated int
+errorÌ64Ö0Ïint
+extÌ16Í(C)Ö0Ïextern void
+faÌ1024Í()Ö0Ï@att int
+fpaÌ1024Í()Ö0Ïint
+iElseÌ16384Ö0Ïelse int
+vFunÌ1024Í()Ö0Ïversion void
