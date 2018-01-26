@@ -487,8 +487,7 @@ static const keywordDesc KeywordTable [] = {
 	{ "switch",         KEYWORD_SWITCH,         { 1, 1, 1, 1, 0, 1, 1 } },
 	{ "synchronized",   KEYWORD_SYNCHRONIZED,   { 0, 0, 0, 1, 0, 0, 1 } },
 	{ "task",           KEYWORD_TASK,           { 0, 0, 0, 0, 1, 0, 0 } },
-	{ "template",       KEYWORD_TEMPLATE,       { 0, 1, 0, 0, 0, 0, 0 } },
-	{ "template",       KEYWORD_NAMESPACE,      { 0, 0, 0, 0, 0, 0, 1 } },	/* parse like namespace */
+	{ "template",       KEYWORD_TEMPLATE,       { 0, 1, 0, 0, 0, 0, 1 } },
 	{ "this",           KEYWORD_THIS,           { 0, 0, 1, 1, 0, 1, 0 } },	/* 0 to allow D ctor tags */
 	{ "throw",          KEYWORD_THROW,          { 0, 1, 1, 1, 0, 1, 1 } },
 	{ "throws",         KEYWORD_THROWS,         { 0, 0, 0, 1, 0, 1, 0 } },
@@ -2080,6 +2079,11 @@ static void processToken (tokenInfo *const token, statementInfo *const st)
 
 		case KEYWORD_NAMESPACE: readPackageOrNamespace (st, DECL_NAMESPACE); break;
 		case KEYWORD_PACKAGE:   readPackageOrNamespace (st, DECL_PACKAGE);   break;
+		case KEYWORD_TEMPLATE:
+			// we can parse template blocks like namespaces
+			if (isInputLanguage (Lang_d))
+				readPackageOrNamespace (st, DECL_NAMESPACE);
+			break;
 		case KEYWORD_EVENT:
 		{
 			if (isInputLanguage (Lang_csharp))
@@ -2115,9 +2119,7 @@ static void processToken (tokenInfo *const token, statementInfo *const st)
 		case KEYWORD_IF:
 			if (isInputLanguage (Lang_d))
 			{	/* static if (is(typeof(__traits(getMember, a, name)) == function)) */
-				int c = skipToNonWhite ();
-				if (c == '(')
-					skipToMatch ("()");
+				skipParens();
 			}
 			break;
 	}
