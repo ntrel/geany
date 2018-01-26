@@ -15,7 +15,6 @@ WINDRES = windres.exe
 CC = gcc
 CXX = g++
 RES = ../geany_private.res
-TARGET = ../geany.exe
 PREFIX = C:/libs
 RM = del
 -include ../localwin32.mk
@@ -23,6 +22,9 @@ RM = del
 ifdef MSYS
 RM = rm -f
 endif
+
+TARGET = ../geany.exe
+LIBGEANY=../libgeany.dll
 
 GTK_INCLUDES= \
 	-I$(PREFIX)/include/gtk-2.0 \
@@ -62,7 +64,7 @@ else
 CFLAGS=-O2 $(CBASEFLAGS)
 endif
 
-OBJS =	about.o geanyentryaction.o main.o printing.o templates.o \
+OBJS =	about.o geanyentryaction.o printing.o templates.o \
 build.o geanymenubuttonaction.o msgwindow.o project.o toolbar.o \
 callbacks.o geanyobject.o navqueue.o sciwrappers.o tools.o \
 dialogs.o geanywraplabel.o notebook.o search.o ui_utils.o \
@@ -88,8 +90,11 @@ clean:
 STLIBS = ../scintilla/scintilla.a ../ctags/main/ctags.a \
 	tagmanager/tagmanager.a
 
-$(TARGET): $(OBJS) $(RES) $(STLIBS)
-	$(CXX) $(OBJS) $(RES) -o $(TARGET) $(STLIBS) $(ALL_GTK_LIBS) $(WIN_LIBS)
+$(LIBGEANY): $(OBJS) $(STLIBS)
+	$(CXX) -shared $^ $(ALL_GTK_LIBS) $(WIN_LIBS) $(DLL_LD_FLAGS) -o $@
+
+$(TARGET): main.o $(LIBGEANY) $(RES)
+	$(CXX) $^ -o $(TARGET) $(ALL_GTK_LIBS) $(WIN_LIBS)
 
 deps.mak:
 	$(CC) -MM  $(CFLAGS) *.c >deps.mak
