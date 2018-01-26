@@ -34,8 +34,8 @@ all: config.h
 	$(MAKE) -C ctags/main -f makefile.win32
 	$(MAKE) -C src/tagmanager -f makefile.win32
 	$(MAKE) -C scintilla/gtk -f makefile.win32
-	$(MAKE) -C plugins -f makefile.win32
 	$(MAKE) -C src -f makefile.win32
+	$(MAKE) -C plugins -f makefile.win32
 
 config.h: win32-config.h
 	$(CP) $< $@
