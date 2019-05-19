@@ -12,17 +12,13 @@ endif
 
 .SUFFIXES: .c .o .dll
 
-GTK_INCLUDES= \
-	-I$(PREFIX)/include/gtk-2.0 \
-	-I$(PREFIX)/lib/gtk-2.0/include \
-	-I$(PREFIX)/include/atk-1.0 \
-	-I$(PREFIX)/include/cairo \
-	-I$(PREFIX)/include/gdk-pixbuf-2.0 \
-	-I$(PREFIX)/include/pango-1.0 \
-	-I$(PREFIX)/include/glib-2.0 \
-	-I$(PREFIX)/lib/glib-2.0/include \
-	-I$(PREFIX)/include \
-	-I$(PREFIX)/include/gettext
+ifdef GTK3
+GTKVERSION=gtk+-3.0
+else
+GTKVERSION=gtk+-2.0
+endif
+
+GTK_INCLUDES= $(shell pkg-config --cflags $(GTKVERSION))
 
 INCLUDEDIRS=  -I.. \
               -I../src \

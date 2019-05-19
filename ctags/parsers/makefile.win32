@@ -11,19 +11,15 @@ ifdef MSYS
 RM = rm -f
 endif
 
-REGEX_DEFINES = -DHAVE_REGCOMP -DSTDC_HEADERS=1
+REGEX_DEFINES = -DHAVE_REGCOMP -DSTDC_HEADERS=1 -DUSE_STDBOOL_H
 
-GTK_INCLUDES= \
-	-I$(PREFIX)/include/gtk-2.0 \
-	-I$(PREFIX)/lib/gtk-2.0/include \
-	-I$(PREFIX)/include/atk-1.0 \
-	-I$(PREFIX)/include/cairo \
-	-I$(PREFIX)/include/gdk-pixbuf-2.0 \
-	-I$(PREFIX)/include/pango-1.0 \
-	-I$(PREFIX)/include/glib-2.0 \
-	-I$(PREFIX)/lib/glib-2.0/include \
-	-I$(PREFIX)/include \
-	-I$(PREFIX)/include/gettext
+ifdef GTK3
+GTKVERSION=gtk+-3.0
+else
+GTKVERSION=gtk+-2.0
+endif
+
+GTK_INCLUDES= $(shell pkg-config --cflags $(GTKVERSION))
 
 INCLUDEDIRS=-I ../main -I . $(GTK_INCLUDES)
 
@@ -37,13 +33,13 @@ endif
 .c.o:
 	$(CC) $(REGEX_DEFINES) $(CFLAGS) -c $<
 
-all: abaqus.o        cobol.o    go.o       lua.o       perl.o        rust.o \
-abc.o           conf.o     haskell.o  make.o      php.o         sh.o \
-actionscript.o  css.o      haxe.o     markdown.o  powershell.o  sql.o \
-asciidoc.o      diff.o     html.o     matlab.o    python.o      tcl.o \
-asm.o           docbook.o  jscript.o  nsis.o      r.o           txt2tags.o \
-basic.o         erlang.o   json.o     objc.o      rest.o        verilog.o \
-c.o             fortran.o  latex.o    pascal.o    ruby.o        vhdl.o
+all: abaqus.o    css.o      haskell.o  make.o      php.o         sh.o \
+abc.o       diff.o     haxe.o     markdown.o  powershell.o  sql.o \
+asciidoc.o  docbook.o  html.o     matlab.o    python.o      tcl.o \
+asm.o       erlang.o   iniconf.o  nsis.o      r.o           tex.o \
+basic.o     flex.o     jscript.o  objc.o      rst.o         txt2tags.o \
+c.o         fortran.o  json.o     pascal.o    ruby.o        verilog.o \
+cobol.o     go.o       lua.o      perl.o      rust.o        vhdl.o
 
 clean:
 	-$(RM) deps.mak *.o

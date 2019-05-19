@@ -3,7 +3,6 @@
 CC = gcc
 AR = ar
 RANLIB = ranlib
-PREFIX = C:/libs
 RM = del
 -include ../../localwin32.mk
 
@@ -13,19 +12,15 @@ endif
 
 COMPLIB=tagmanager.a
 
-REGEX_DEFINES = -DHAVE_REGCOMP -DSTDC_HEADERS=1
+REGEX_DEFINES = -DHAVE_REGCOMP -DSTDC_HEADERS=1 -DUSE_STDBOOL_H -DCTAGS_LIB
 
-GTK_INCLUDES= \
-	-I$(PREFIX)/include/gtk-2.0 \
-	-I$(PREFIX)/lib/gtk-2.0/include \
-	-I$(PREFIX)/include/atk-1.0 \
-	-I$(PREFIX)/include/cairo \
-	-I$(PREFIX)/include/gdk-pixbuf-2.0 \
-	-I$(PREFIX)/include/pango-1.0 \
-	-I$(PREFIX)/include/glib-2.0 \
-	-I$(PREFIX)/lib/glib-2.0/include \
-	-I$(PREFIX)/include \
-	-I$(PREFIX)/include/gettext
+ifdef GTK3
+GTKVERSION=gtk+-3.0
+else
+GTKVERSION=gtk+-2.0
+endif
+
+GTK_INCLUDES= $(shell pkg-config --cflags $(GTKVERSION))
 
 INCLUDEDIRS=-I ../../ctags/main -I ../ -I . $(GTK_INCLUDES)
 
@@ -46,7 +41,7 @@ all: $(COMPLIB)
 clean:
 	-$(RM) deps.mak *.o $(COMPLIB)
 
-$(COMPLIB): tm_ctags_wrappers.o tm_workspace.o tm_source_file.o tm_parser.o tm_tag.o 
+$(COMPLIB): tm_workspace.o tm_source_file.o tm_parser.o tm_tag.o
 	$(AR) rc $@ $^
 	$(RANLIB) $@
 

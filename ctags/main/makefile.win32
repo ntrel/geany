@@ -3,7 +3,7 @@
 CC = gcc
 AR = ar
 RANLIB = ranlib
-PREFIX = C:/libs
+PREFIX = /c/mingw32
 RM = del
 -include ../../localwin32.mk
 
@@ -13,19 +13,15 @@ endif
 
 COMPLIB=ctags.a
 
-REGEX_DEFINES = -DHAVE_REGCOMP -DSTDC_HEADERS=1
+REGEX_DEFINES = -DHAVE_REGCOMP -DSTDC_HEADERS=1 -DUSE_STDBOOL_H -DCTAGS_LIB
 
-GTK_INCLUDES= \
-	-I$(PREFIX)/include/gtk-2.0 \
-	-I$(PREFIX)/lib/gtk-2.0/include \
-	-I$(PREFIX)/include/atk-1.0 \
-	-I$(PREFIX)/include/cairo \
-	-I$(PREFIX)/include/gdk-pixbuf-2.0 \
-	-I$(PREFIX)/include/pango-1.0 \
-	-I$(PREFIX)/include/glib-2.0 \
-	-I$(PREFIX)/lib/glib-2.0/include \
-	-I$(PREFIX)/include \
-	-I$(PREFIX)/include/gettext
+ifdef GTK3
+GTKVERSION=gtk+-3.0
+else
+GTKVERSION=gtk+-2.0
+endif
+
+GTK_INCLUDES= $(shell pkg-config --cflags $(GTKVERSION))
 
 INCLUDEDIRS=-I ../ -I . $(GTK_INCLUDES)
 
@@ -44,15 +40,14 @@ all: $(COMPLIB)
 clean:
 	-$(RM) deps.mak *.o $(COMPLIB)
 
-#~ $(COMPLIB): abaqus.o abc.o args.o c.o cobol.o erlang.o fortran.o make.o conf.o pascal.o perl.o php.o diff.o vhdl.o verilog.o lua.o js.o json.o \
-#~ actionscript.o nsis.o objc.o powershell.c \
-#~ haskell.o haxe.o html.o python.o lregex.o asciidoc.o rest.o sh.o ctags.o entry.o get.o keyword.o nestlevel.o \
-#~ options.o \
-#~ parse.o basic.o read.o sort.o strlist.o latex.o markdown.o matlab.o docbook.o tcl.o ruby.o rust.o asm.o sql.o txt2tags.o css.o \
-#~ vstring.o r.o go.o
-$(COMPLIB): args.o     lcpp.o    mio.o        parse.o     sort.o     xtag.o \
-entry.o    lregex.o  nestlevel.o  read.o      strlist.o \
-keyword.o  main.o    options.o    routines.o  vstring.o ../parsers/*.o
+$(COMPLIB): args.o        flags.o    lxcmd.o      options.o       read.o       vstring.o \
+	ctags-api.o   fmt.o      lxpath.o     output-ctags.o  repoinfo.o   xtag.o \
+	debug.o       htable.o   main.o       parse.o         routines.o \
+	dependency.o  keyword.o  mio.o        pcoproc.o       selectors.o \
+	entry.o       kind.o     nestlevel.o  promise.o       sort.o \
+	error.o       lcpp.o     numarray.o   ptag.o          strlist.o \
+	field.o       lregex.o   objpool.o    ptrarray.o      trashbox.o \
+	../parsers/*.o
 	$(AR) rc $@ $^
 	$(RANLIB) $@
 
