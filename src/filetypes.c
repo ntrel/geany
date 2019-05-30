@@ -555,6 +555,21 @@ GeanyFiletype *filetypes_detect_from_extension(const gchar *utf8_filename)
 			}
 		}
 	}
+	if (!ft)
+	{
+		for (i = GEANY_MAX_BUILT_IN_FILETYPES; i < filetypes_array->len; i++)
+		{
+			if (!filetypes[i]->extension) continue;
+			str = g_strconcat(".", filetypes[i]->extension, NULL);
+			if (g_str_has_suffix(base_filename, str))
+			{
+				ft = filetypes[i];
+				g_free(str);
+				break;
+			}
+			g_free(str);
+		}
+	}
 	if (ft == NULL)
 		ft = filetypes[GEANY_FILETYPES_NONE];
 
