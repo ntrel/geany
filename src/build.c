@@ -1902,7 +1902,7 @@ typedef struct BuildTableFields
 GtkWidget *build_commands_table(GeanyDocument *doc, GeanyBuildSource dst, BuildTableData *table_data,
 								GeanyFiletype *ft)
 {
-	GtkWidget *label, *sep, *clearicon, *clear;
+	GtkWidget *label, *sep, *clearicon, *clear, *win;
 	BuildTableFields *fields;
 	GtkTable *table;
 	const gchar **ch;
@@ -2025,7 +2025,12 @@ GtkWidget *build_commands_table(GeanyDocument *doc, GeanyBuildSource dst, BuildT
 	/*printf("%d extra rows in dialog\n", row-build_items_count);*/
 	++row;
 	*table_data = fields;
-	return GTK_WIDGET(table);
+
+	win = gtk_scrolled_window_new(NULL, NULL);
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(win),
+		GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+	gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(win), GTK_WIDGET(table));
+	return win;
 }
 
 
