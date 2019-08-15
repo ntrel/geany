@@ -815,10 +815,8 @@ static void create_radio_menu_item(GtkWidget *menu, GeanyFiletype *ftype)
 }
 
 
-static void filetype_free(gpointer data, G_GNUC_UNUSED gpointer user_data)
+static void filetype_free(GeanyFiletype *ft)
 {
-	GeanyFiletype *ft = data;
-
 	g_return_if_fail(ft != NULL);
 
 	g_free(ft->name);
@@ -850,10 +848,15 @@ static void filetype_free(gpointer data, G_GNUC_UNUSED gpointer user_data)
 /* frees the array and all related pointers */
 void filetypes_free_types(void)
 {
+	GeanyFiletype *ft;
+	guint i;
+	
 	g_return_if_fail(filetypes_array != NULL);
 	g_return_if_fail(filetypes_hash != NULL);
 
-	g_ptr_array_foreach(filetypes_array, filetype_free, NULL);
+	foreach_ptr_array(ft, i, filetypes_array)
+		filetype_free(ft);
+
 	g_ptr_array_free(filetypes_array, TRUE);
 	g_hash_table_destroy(filetypes_hash);
 }
