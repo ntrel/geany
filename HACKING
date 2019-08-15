@@ -214,6 +214,10 @@ Coding
   to will not be mutated within the function.
 * Don't let variable names shadow outer variables - use gcc's -Wshadow
   option.
+* Avoid using untyped pointers (e.g. gpointer) where practical.
+* Prefer ``for`` loops to calling *_foreach() with an untyped user_data
+  pointer parameter, unless external iteration is not supported (e.g. 
+  for tree structures).
 * Use the strictest possible data type where practical. For example
   for an enumeration, use the actual enum type rather than just a
   ``gint``, use a ``gchar`` for individual (ASCII/UTF-8) string
