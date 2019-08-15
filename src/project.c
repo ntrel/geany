@@ -405,14 +405,8 @@ gboolean project_close(gboolean open_default)
 }
 
 
-static void destroy_project(gboolean open_default)
+static void cleanup_project_build(void)
 {
-	GSList *node;
-
-	g_return_if_fail(app->project != NULL);
-
-	g_signal_emit_by_name(geany_object, "project-before-close");
-
 	/* remove project filetypes build entries */
 	if (app->project->priv->build_filetypes_list != NULL)
 	{
@@ -429,11 +423,20 @@ static void destroy_project(gboolean open_default)
 		}
 		g_ptr_array_free(app->project->priv->build_filetypes_list, FALSE);
 	}
-
 	/* remove project non filetype build menu items */
 	build_remove_menu_item(GEANY_BCS_PROJ, GEANY_GBG_NON_FT, -1);
 	build_remove_menu_item(GEANY_BCS_PROJ, GEANY_GBG_EXEC, -1);
+}
 
+static void destroy_project(gboolean open_default)
+{
+	GSList *node;
+
+	g_return_if_fail(app->project != NULL);
+
+	g_signal_emit_by_name(geany_object, "project-before-close");
+	
+	cleanup_project_build();
 	g_free(app->project->name);
 	g_free(app->project->description);
 	g_free(app->project->file_name);
