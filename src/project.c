@@ -384,19 +384,6 @@ static void update_ui(void)
 }
 
 
-static void remove_foreach_project_filetype(gpointer data, gpointer user_data)
-{
-	GeanyFiletype *ft = data;
-	if (ft != NULL)
-	{
-		SETPTR(ft->priv->projfilecmds, NULL);
-		SETPTR(ft->priv->projexeccmds, NULL);
-		SETPTR(ft->priv->projerror_regex_string, NULL);
-		ft->priv->project_list_entry = -1;
-	}
-}
-
-
 /* open_default will make function reload default session files on close */
 gboolean project_close(gboolean open_default)
 {
@@ -429,7 +416,17 @@ static void destroy_project(gboolean open_default)
 	/* remove project filetypes build entries */
 	if (app->project->priv->build_filetypes_list != NULL)
 	{
-		g_ptr_array_foreach(app->project->priv->build_filetypes_list, remove_foreach_project_filetype, NULL);
+		GeanyFiletype *ft;
+		guint i;
+		
+		foreach_ptr_array(ft, i, app->project->priv->build_filetypes_list)
+		{
+			if (!ft) continue;
+			SETPTR(ft->priv->projfilecmds, NULL);
+			SETPTR(ft->priv->projexeccmds, NULL);
+			SETPTR(ft->priv->projerror_regex_string, NULL);
+			ft->priv->project_list_entry = -1;
+		}
 		g_ptr_array_free(app->project->priv->build_filetypes_list, FALSE);
 	}
 
