@@ -158,6 +158,18 @@ widgets;
 static guint build_groups_count[GEANY_GBG_COUNT] = { 3, 4, 2 };
 static guint build_items_count = 9;
 
+enum GeanyBuildFixedMenuItems
+{
+	GBF_NEXT_ERROR,
+	GBF_PREV_ERROR,
+	GBF_COMMANDS,
+	GBF_SEP_1,
+	GBF_SEP_2,
+	GBF_SEP_3,
+	GBF_SEP_4,
+	GBF_COUNT
+};
+
 static void build_exit_cb(GPid pid, gint status, gpointer user_data);
 static void build_iofunc(GString *string, GIOCondition condition, gpointer data);
 #ifndef G_OS_WIN32
@@ -174,6 +186,7 @@ static void show_build_result_message(gboolean failure);
 static void process_build_output_line(gchar *msg, gint color);
 static void show_build_commands_dialog(void);
 static void on_build_menu_item(GtkWidget *w, gpointer user_data);
+
 
 void build_finalize(void)
 {

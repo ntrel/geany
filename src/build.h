@@ -78,18 +78,6 @@ guint build_get_group_count(const GeanyBuildGroup grp);
 /* include the fixed widgets in an array indexed by groups */
 #define GBG_FIXED GEANY_GBG_COUNT
 
-enum GeanyBuildFixedMenuItems
-{
-	GBF_NEXT_ERROR,
-	GBF_PREV_ERROR,
-	GBF_COMMANDS,
-	GBF_SEP_1,
-	GBF_SEP_2,
-	GBF_SEP_3,
-	GBF_SEP_4,
-	GBF_COUNT
-};
-
 typedef struct GeanyBuildInfo
 {
 	GeanyBuildGroup	 grp;
