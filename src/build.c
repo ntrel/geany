@@ -131,12 +131,22 @@ typedef enum
 				(gbo) - GEANY_GBO_MAKE_ALL : (gbo))))
 
 /* pack group (<8) and command (<32) into a user_data pointer */
-#define GRP_CMD_TO_POINTER(grp, cmd) GUINT_TO_POINTER((((grp)&7) << 5) | ((cmd)&0x1f))
-#define GBO_TO_POINTER(gbo) (GRP_CMD_TO_POINTER(GBO_TO_GBG(gbo), GBO_TO_CMD(gbo)))
-#define GPOINTER_TO_CMD(gptr) (GPOINTER_TO_UINT(gptr)&0x1f)
-#define GPOINTER_TO_GRP(gptr) ((GPOINTER_TO_UINT(gptr)&0xe0) >> 5)
+typedef union CommandParam
+{
+	struct 
+	{
+		guint cmd : 31;
+		guint grp : 7;
+	};
+	gpointer ptr;
+}
+CommandParam;
 
-static gpointer last_toolbutton_action = GBO_TO_POINTER(GEANY_GBO_BUILD);
+#define CMD_PARAM(grp, cmd) ((CommandParam){{grp, cmd}})
+#define GBO_TO_PARAM(gbo) CMD_PARAM(GBO_TO_GBG(gbo), GBO_TO_CMD(gbo))
+#define GBO_TO_POINTER(gbo) GBO_TO_PARAM(gbo).ptr
+
+static CommandParam last_toolbutton_action = GBO_TO_PARAM(GEANY_GBO_BUILD);
 
 static BuildMenuItems menu_items = {NULL, {NULL, NULL, NULL, NULL}};
 
@@ -693,7 +703,7 @@ void build_set_menu_item(const GeanyBuildSource src, const GeanyBuildGroup grp,
 GEANY_API_SYMBOL
 void build_activate_menu_item(const GeanyBuildGroup grp, const guint cmd)
 {
-	on_build_menu_item(NULL, GRP_CMD_TO_POINTER(grp, cmd));
+	on_build_menu_item(NULL, CMD_PARAM(grp, cmd).ptr);
 }
 
 
@@ -1248,8 +1258,9 @@ static void on_build_menu_item(GtkWidget *w, gpointer user_data)
 {
 	GeanyDocument *doc = document_get_current();
 	GeanyBuildCommand *bc;
-	guint grp = GPOINTER_TO_GRP(user_data);
-	guint cmd = GPOINTER_TO_CMD(user_data);
+	CommandParam cp = {.ptr = user_data};
+	guint grp = cp.grp;
+	guint cmd = cp.cmd;
 
 	if (doc && doc->changed)
 	{
@@ -1378,7 +1389,8 @@ static void create_build_menu_item(GtkWidget *menu, GeanyKeyGroup *group, GtkAcc
 	gtk_container_add(GTK_CONTAINER(menu), item);
 	if (bs->cb != NULL)
 	{
-		g_signal_connect(item, "activate", G_CALLBACK(bs->cb), GRP_CMD_TO_POINTER(grp,cmd));
+		g_signal_connect(item, "activate", G_CALLBACK(bs->cb),
+			CMD_PARAM(grp, cmd).ptr);
 	}
 	menu_items.menu_item[grp][cmd] = item;
 }
@@ -1630,7 +1642,9 @@ static void on_set_build_commands_activate(GtkWidget *w, gpointer u)
 
 static void on_toolbutton_build_activate(GtkWidget *menuitem, gpointer user_data)
 {
-	last_toolbutton_action = user_data;
+	CommandParam cp = {.ptr = user_data};
+	
+	last_toolbutton_action = cp;
 	g_object_set(widgets.build_action, "tooltip", _("Build the current file"), NULL);
 	on_build_menu_item(menuitem, user_data);
 }
@@ -1638,17 +1652,18 @@ static void on_toolbutton_build_activate(GtkWidget *menuitem, gpointer user_data
 
 static void on_toolbutton_make_activate(GtkWidget *menuitem, gpointer user_data)
 {
-	gchar *msg;
+	gchar *msg = NULL;
+	CommandParam cp = {.ptr = user_data};
+	
+	last_toolbutton_action = cp;
 
-	last_toolbutton_action = user_data;
-	if (last_toolbutton_action == GBO_TO_POINTER(GEANY_GBO_MAKE_ALL))
+	if (user_data == GBO_TO_POINTER(GEANY_GBO_MAKE_ALL))
 			msg = _("Build the current file with Make and the default target");
-	else if (last_toolbutton_action == GBO_TO_POINTER(GEANY_GBO_CUSTOM))
+	else if (user_data == GBO_TO_POINTER(GEANY_GBO_CUSTOM))
 			msg = _("Build the current file with Make and the specified target");
-	else if (last_toolbutton_action == GBO_TO_POINTER(GEANY_GBO_MAKE_OBJECT))
+	else if (user_data == GBO_TO_POINTER(GEANY_GBO_MAKE_OBJECT))
 			msg = _("Compile the current file with Make");
-	else
-			msg = NULL;
+
 	g_object_set(widgets.build_action, "tooltip", msg, NULL);
 	on_build_menu_item(menuitem, user_data);
 }
@@ -1697,14 +1712,7 @@ static void on_build_previous_error(GtkWidget *menuitem, gpointer user_data)
 
 void build_toolbutton_build_clicked(GtkAction *action, gpointer unused)
 {
-	if (last_toolbutton_action == GBO_TO_POINTER(GEANY_GBO_BUILD))
-	{
-		on_build_menu_item(NULL, GBO_TO_POINTER(GEANY_GBO_BUILD));
-	}
-	else
-	{
-		on_build_menu_item(NULL, last_toolbutton_action);
-	}
+	on_build_menu_item(NULL, last_toolbutton_action.ptr);
 }
 
 
