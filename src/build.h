@@ -75,9 +75,6 @@ guint build_get_group_count(const GeanyBuildGroup grp);
 
 #ifdef GEANY_PRIVATE
 
-/* include the fixed widgets in an array indexed by groups */
-#define GBG_FIXED GEANY_GBG_COUNT
-
 typedef struct GeanyBuildInfo
 {
 	GeanyBuildGroup	 grp;
@@ -143,8 +140,6 @@ void build_menu_update(GeanyDocument *doc);
 void build_toolbutton_build_clicked(GtkAction *action, gpointer user_data);
 
 GeanyBuildCommand *build_get_menu_item(const GeanyBuildSource src, const GeanyBuildGroup grp, const guint cmd);
-
-BuildMenuItems *build_get_menu_items(gint filetype_idx);
 
 /* load and store menu configuration */
 void build_load_menu(GKeyFile *config, GeanyBuildSource dst, gpointer ptr);

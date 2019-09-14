@@ -158,6 +158,9 @@ widgets;
 static guint build_groups_count[GEANY_GBG_COUNT] = { 3, 4, 2 };
 static guint build_items_count = 9;
 
+/* include the fixed widgets in an array indexed by groups */
+#define GBG_FIXED GEANY_GBG_COUNT
+
 enum GeanyBuildFixedMenuItems
 {
 	GBF_NEXT_ERROR,
@@ -186,6 +189,7 @@ static void show_build_result_message(gboolean failure);
 static void process_build_output_line(gchar *msg, gint color);
 static void show_build_commands_dialog(void);
 static void on_build_menu_item(GtkWidget *w, gpointer user_data);
+static BuildMenuItems *build_get_menu_items(void);
 
 
 void build_finalize(void)
@@ -1042,8 +1046,8 @@ static void process_build_output_line(gchar *msg, gint color)
 
 		if (build_info.message_count == 1)
 		{
-			gtk_widget_set_sensitive(build_get_menu_items(-1)->menu_item[GBG_FIXED][GBF_NEXT_ERROR], TRUE);
-			gtk_widget_set_sensitive(build_get_menu_items(-1)->menu_item[GBG_FIXED][GBF_PREV_ERROR], TRUE);
+			gtk_widget_set_sensitive(build_get_menu_items()->menu_item[GBG_FIXED][GBF_NEXT_ERROR], TRUE);
+			gtk_widget_set_sensitive(build_get_menu_items()->menu_item[GBG_FIXED][GBF_PREV_ERROR], TRUE);
 		}
 	}
 	g_free(filename);
@@ -2288,7 +2292,7 @@ static void show_build_commands_dialog(void)
 
 
 /* Creates the relevant build menu if necessary. */
-BuildMenuItems *build_get_menu_items(gint filetype_idx)
+static BuildMenuItems *build_get_menu_items(void)
 {
 	BuildMenuItems *items;
 
@@ -2808,7 +2812,7 @@ gboolean build_keybinding(guint key_id)
 	if (!gtk_widget_is_sensitive(ui_lookup_widget(main_widgets.window, "menu_build1")))
 		return TRUE;
 
-	menu_items = build_get_menu_items(doc->file_type->id);
+	menu_items = build_get_menu_items();
 	/* TODO make it a table??*/
 	switch (key_id)
 	{
