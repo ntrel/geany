@@ -158,9 +158,6 @@ widgets;
 static guint build_groups_count[GEANY_GBG_COUNT] = { 3, 4, 2 };
 static guint build_items_count = 9;
 
-/* include the fixed widgets in an array indexed by groups */
-#define GBG_FIXED GEANY_GBG_COUNT
-
 enum GeanyBuildFixedMenuItems
 {
 	GBF_NEXT_ERROR,

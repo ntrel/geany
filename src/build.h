@@ -75,6 +75,9 @@ guint build_get_group_count(const GeanyBuildGroup grp);
 
 #ifdef GEANY_PRIVATE
 
+/* include the fixed widgets in an array indexed by groups */
+#define GBG_FIXED GEANY_GBG_COUNT
+
 typedef struct GeanyBuildInfo
 {
 	GeanyBuildGroup	 grp;
