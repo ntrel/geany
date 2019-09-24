@@ -92,7 +92,7 @@ $(LIBGEANY): $(OBJS) $(STLIBS)
 $(TARGET): main.o $(LIBGEANY) $(RES)
 	$(CXX) $^ -o $(TARGET) $(ALL_GTK_LIBS) $(WIN_LIBS)
 
-deps.mak: signallist.i
+deps.mak:
 	$(CC) -MM  $(CFLAGS) *.c >deps.mak
 
 # Generate header dependencies with "make deps.mak"
