@@ -1104,6 +1104,12 @@ static gboolean on_editor_notify(G_GNUC_UNUSED GObject *object, GeanyEditor *edi
 			  * as it will cause repainting. */
 			if (editor->scroll_percent > 0.0F)
 			{
+				if (editor->scroll_percent >= 1.0F)
+				{
+					// for horizontal scrolling
+					sci_scroll_caret(editor->sci);
+					editor->scroll_percent = 0.5F;
+				}
 				editor_scroll_to_line(editor, -1, editor->scroll_percent);
 				/* disable further scrolling */
 				editor->scroll_percent = -1.0F;
@@ -4618,6 +4624,11 @@ void editor_set_line_wrapping(GeanyEditor *editor, gboolean wrap)
 	g_return_if_fail(editor != NULL);
 
 	editor->line_wrapping = wrap;
+	// if cursor on screen, we may need to scroll if there are
+	// many/long wrapped lines 
+	if (!GTK_WIDGET_REALIZED(editor->sci) ||
+		editor_line_in_view(editor, sci_get_current_line(editor->sci)))
+		editor->scroll_percent = 1.0F;
 	sci_set_lines_wrapped(editor->sci, wrap);
 }
 
