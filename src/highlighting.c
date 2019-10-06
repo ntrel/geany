@@ -1243,17 +1243,10 @@ static gchar *utils_get_setting_locale_string(GKeyFile *keyfile,
 
 
 static void add_color_scheme_item(GtkListStore *store,
-	gchar *name, gchar *desc, const gchar *fn, GtkTreeIter *current_iter)
+	const gchar *name, const gchar *desc, const gchar *fn, GtkTreeIter *current_iter)
 {
 	GtkTreeIter iter;
-	gchar *markup;
-
-	/* reuse parameters */
-	name = g_markup_escape_text(name, -1);
-	desc = g_markup_escape_text(desc, -1);
-	markup = g_strdup_printf("<big><b>%s</b></big>\n%s", name, desc);
-	g_free(name);
-	g_free(desc);
+	gchar *markup = g_markup_printf_escaped("<big><b>%s</b></big>\n%s", name, desc);
 
 	gtk_list_store_append(store, &iter);
 	gtk_list_store_set(store, &iter, SCHEME_MARKUP, markup,
