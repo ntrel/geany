@@ -620,7 +620,7 @@ static void socket_init_win32(void)
 static void handle_input_filename(const gchar *buf, gint idx)
 {
 	gchar *utf8_filename, *locale_filename;
-
+	
 	/* we never know how the input is encoded, so do the best auto detection we can */
 	if (! g_utf8_validate(buf, -1, NULL))
 		utf8_filename = encodings_convert_to_utf8(buf, -1, NULL);
@@ -630,13 +630,14 @@ static void handle_input_filename(const gchar *buf, gint idx)
 	locale_filename = utils_get_locale_from_utf8(utf8_filename);
 	if (locale_filename)
 	{
-		if (idx == 0 && g_str_has_suffix(locale_filename, ".geany"))
-		{
-			if (project_ask_close())
-				main_load_project_from_command_line(locale_filename, TRUE);
-		}
+		static gboolean proj;
+		if (idx == 0)
+			proj = g_str_has_suffix(locale_filename, ".geany");
+		
+		if (proj && project_ask_close())
+			main_load_project_from_command_line(locale_filename, TRUE);
 		else
-			main_handle_filename(locale_filename);
+			main_handle_filename(locale_filename, idx - (proj == TRUE));
 	}
 	g_free(utf8_filename);
 	g_free(locale_filename);

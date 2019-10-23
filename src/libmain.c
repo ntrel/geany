@@ -795,7 +795,7 @@ static gboolean signal_cb(gpointer user_data)
 
 /* Used for command-line arguments at startup or from socket.
  * this will strip any :line:col filename suffix from locale_filename */
-gboolean main_handle_filename(const gchar *locale_filename)
+gboolean main_handle_filename(const gchar *locale_filename, gint idx)
 {
 	GeanyDocument *doc;
 	gint line = -1, column = -1;
@@ -814,7 +814,21 @@ gboolean main_handle_filename(const gchar *locale_filename)
 	if (column >= 0)
 		cl_options.goto_column = column;
 
-	if (g_file_test(filename, G_FILE_TEST_IS_REGULAR))
+	static gboolean exists;
+	// all filenames must exist if first does
+	if (idx == 0)
+		exists = file_prefs.cmdline_new_files ?
+			g_file_test(filename, G_FILE_TEST_IS_REGULAR) : TRUE;
+	if (exists != g_file_test(filename, G_FILE_TEST_IS_REGULAR))
+	{
+		gchar *utf8_filename = utils_get_utf8_from_locale(filename);
+		const gchar *msg = !file_prefs.cmdline_new_files ?
+			_("Could not find file '%s'.") :
+			_("Inconsistent filename passed: '%s'.");
+		ui_set_statusbar(TRUE, msg, utf8_filename);
+		g_free(utf8_filename);
+	}
+	else if (exists)
 	{
 		doc = document_open_file(filename, cl_options.readonly, NULL, NULL);
 		/* add recent file manually if opening_session_files is set */
@@ -827,12 +841,13 @@ gboolean main_handle_filename(const gchar *locale_filename)
 	{	/* create new file with the given filename */
 		gchar *utf8_filename = utils_get_utf8_from_locale(filename);
 
+		// unsaved new doc may already exist
 		doc = document_find_by_filename(utf8_filename);
 		if (doc)
 			document_show_tab(doc);
 		else
 			doc = document_new_file(utf8_filename, NULL, NULL);
-		if (doc != NULL)
+		if (doc)
 			ui_add_recent_document(doc);
 		g_free(utf8_filename);
 		g_free(filename);
@@ -862,13 +877,14 @@ static void open_cl_files(gint argc, gchar **argv)
 		/* It seems argv elements are encoded in CP1252 on a German Windows */
 		SETPTR(filename, g_locale_to_utf8(filename, -1, NULL, NULL, NULL));
 #endif
-		if (filename && ! main_handle_filename(filename))
+		if (filename && ! main_handle_filename(filename, i - 1))
 		{
-			const gchar *msg = _("Could not find file '%s'.");
+			const gchar *msg = !file_prefs.cmdline_new_files ?
+				_("Could not find file '%s'.") :
+				_("Inconsistent filename passed: '%s'.");
 
 			g_printerr(msg, filename);	/* also print to the terminal */
 			g_printerr("\n");
-			ui_set_statusbar(TRUE, msg, filename);
 		}
 		g_free(filename);
 	}
