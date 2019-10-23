@@ -617,7 +617,7 @@ static void socket_init_win32(void)
 #endif
 
 
-static void handle_input_filename(const gchar *buf)
+static void handle_input_filename(const gchar *buf, gint idx)
 {
 	gchar *utf8_filename, *locale_filename;
 
@@ -630,7 +630,7 @@ static void handle_input_filename(const gchar *buf)
 	locale_filename = utils_get_locale_from_utf8(utf8_filename);
 	if (locale_filename)
 	{
-		if (g_str_has_suffix(locale_filename, ".geany"))
+		if (idx == 0 && g_str_has_suffix(locale_filename, ".geany"))
 		{
 			if (project_ask_close())
 				main_load_project_from_command_line(locale_filename, TRUE);
@@ -681,6 +681,7 @@ gboolean socket_lock_input_cb(GIOChannel *source, GIOCondition condition, gpoint
 		if (strncmp(buf, "open", 4) == 0)
 		{
 			cl_options.readonly = strncmp(buf+4, "ro", 2) == 0; /* open in readonly? */
+			gint count = 0;
 			while (socket_fd_gets(sock, buf, sizeof(buf)) != -1 && *buf != '.')
 			{
 				gsize buf_len = strlen(buf);
@@ -689,7 +690,7 @@ gboolean socket_lock_input_cb(GIOChannel *source, GIOCondition condition, gpoint
 				if (buf_len > 0 && buf[buf_len - 1] == '\n')
 					buf[buf_len - 1] = '\0';
 
-				handle_input_filename(buf);
+				handle_input_filename(buf, count++);
 			}
 			popup = TRUE;
 		}
