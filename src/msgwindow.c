@@ -196,18 +196,33 @@ static gboolean on_msgwin_key_press_event(GtkWidget *widget, GdkEventKey *event,
 }
 
 
+static void on_treeview_check_resize(GtkWidget *widget, gpointer cell)
+{
+	GtkAllocation all;
+	gtk_widget_get_allocation(widget, &all);
+	gint w = all.width - 8;
+	g_object_set(cell_renderers[MSG_STATUS], "width", w, NULL);
+	g_object_set(cell_renderers[MSG_STATUS], "wrap-width", w, NULL);
+}
+
+
 /* does some preparing things to the status message list widget */
 static void prepare_status_tree_view(void)
 {
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *column;
+	gint width = 20;
 
 	msgwindow.store_status = gtk_list_store_new(1, G_TYPE_STRING);
 	gtk_tree_view_set_model(GTK_TREE_VIEW(msgwindow.tree_status), GTK_TREE_MODEL(msgwindow.store_status));
+	g_signal_connect(msgwindow.tree_status, "check-resize",
+		G_CALLBACK(on_treeview_check_resize), NULL);
 	g_object_unref(msgwindow.store_status);
 
 	renderer = gtk_cell_renderer_text_new();
 	cell_renderers[MSG_STATUS] = renderer;
+	g_object_set(renderer, "wrap-mode", PANGO_WRAP_WORD,
+		"wrap-width", width, "width", width, NULL);
 	column = gtk_tree_view_column_new_with_attributes(_("Status messages"), renderer, "text", 0, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(msgwindow.tree_status), column);
 
