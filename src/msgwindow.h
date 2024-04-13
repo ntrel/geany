@@ -47,7 +47,8 @@ typedef enum
 	MSG_COMPILER,	/**< Index of the compiler tab */
 	MSG_MESSAGE,	/**< Index of the messages tab */
 	MSG_SCRATCH,	/**< Index of the scratch tab */
-	MSG_VTE			/**< Index of the VTE tab */
+	MSG_VTE,		/**< Index of the VTE tab */
+	MSG_COUNT
 } MessageWindowTabNum;
 
 

@@ -65,6 +65,8 @@ ParseData;
 
 MessageWindow msgwindow;
 
+GtkCellRenderer *cell_renderers[MSG_COUNT];
+
 enum
 {
 	MSG_COL_LINE = 0,
@@ -205,6 +207,7 @@ static void prepare_status_tree_view(void)
 	g_object_unref(msgwindow.store_status);
 
 	renderer = gtk_cell_renderer_text_new();
+	cell_renderers[MSG_STATUS] = renderer;
 	column = gtk_tree_view_column_new_with_attributes(_("Status messages"), renderer, "text", 0, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(msgwindow.tree_status), column);
 
@@ -232,6 +235,7 @@ static void prepare_msg_tree_view(void)
 	g_object_unref(msgwindow.store_msg);
 
 	renderer = gtk_cell_renderer_text_new();
+	cell_renderers[MSG_MESSAGE] = renderer;
 	column = gtk_tree_view_column_new_with_attributes(NULL, renderer,
 		"foreground-gdk", MSG_COL_COLOR, "text", MSG_COL_STRING, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(msgwindow.tree_msg), column);
@@ -269,6 +273,7 @@ static void prepare_compiler_tree_view(void)
 	g_object_unref(msgwindow.store_compiler);
 
 	renderer = gtk_cell_renderer_text_new();
+	cell_renderers[MSG_COMPILER] = renderer;
 	column = gtk_tree_view_column_new_with_attributes(NULL, renderer,
 		"foreground-gdk", COMPILER_COL_COLOR, "text", COMPILER_COL_STRING, NULL);
 	gtk_tree_view_append_column(GTK_TREE_VIEW(msgwindow.tree_compiler), column);
@@ -643,9 +648,20 @@ on_hide_message_window(GtkMenuItem *menuitem, gpointer user_data)
 }
 
 
+static void
+on_treeview_wrap_toggled(GtkCheckMenuItem *checkmenuitem, gpointer user_data)
+{
+	gint type = GPOINTER_TO_INT(user_data);
+	gboolean set = gtk_check_menu_item_get_active(checkmenuitem);
+
+	g_object_set(cell_renderers[type], "wrap-mode", PANGO_WRAP_WORD,
+		"wrap-width", set ? 30 : -1, NULL);
+}
+
+
 static GtkWidget *create_message_popup_menu(gint type)
 {
-	GtkWidget *message_popup_menu, *clear, *copy, *copy_all, *image;
+	GtkWidget *message_popup_menu, *clear, *copy, *copy_all, *wid;
 
 	message_popup_menu = gtk_menu_new();
 
@@ -655,23 +671,23 @@ static GtkWidget *create_message_popup_menu(gint type)
 	g_signal_connect(clear, "activate",
 		G_CALLBACK(on_message_treeview_clear_activate), GINT_TO_POINTER(type));
 
-	copy = gtk_image_menu_item_new_with_mnemonic(_("C_opy"));
+	copy = ui_image_menu_item_new(GTK_STOCK_COPY, _("C_opy"));
 	gtk_widget_show(copy);
 	gtk_container_add(GTK_CONTAINER(message_popup_menu), copy);
-	image = gtk_image_new_from_stock(GTK_STOCK_COPY, GTK_ICON_SIZE_MENU);
-	gtk_widget_show(image);
-	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(copy), image);
 	g_signal_connect(copy, "activate",
 		G_CALLBACK(on_compiler_treeview_copy_activate), GINT_TO_POINTER(type));
 
-	copy_all = gtk_image_menu_item_new_with_mnemonic(_("Copy _All"));
+	copy_all = ui_image_menu_item_new(GTK_STOCK_COPY, _("Copy _All"));
 	gtk_widget_show(copy_all);
 	gtk_container_add(GTK_CONTAINER(message_popup_menu), copy_all);
-	image = gtk_image_new_from_stock(GTK_STOCK_COPY, GTK_ICON_SIZE_MENU);
-	gtk_widget_show(image);
-	gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(copy_all), image);
 	g_signal_connect(copy_all, "activate",
 		G_CALLBACK(on_compiler_treeview_copy_all_activate), GINT_TO_POINTER(type));
+
+	wid = gtk_check_menu_item_new_with_mnemonic(_("_Wrap"));
+	gtk_widget_show(wid);
+	gtk_container_add(GTK_CONTAINER(message_popup_menu), wid);
+	g_signal_connect(wid, "toggled",
+		G_CALLBACK(on_treeview_wrap_toggled), GINT_TO_POINTER(type));
 
 	msgwin_menu_add_common_items(GTK_MENU(message_popup_menu));
 
